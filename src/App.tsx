@@ -25,8 +25,9 @@ function App() {
     }
     
     // Vercel deployment edge cases
-    if (host === 'meal-planner-saas.vercel.app' || host === 'www.meal-planner-saas.vercel.app') {
-      return null;
+    if (host.includes('vercel.app')) {
+      // For Vercel previews, use localStorage to simulate subdomains
+      return localStorage.getItem('previewTenant') || null;
     }
     
     // Production domain: mealhouse.app

@@ -48,12 +48,19 @@ export default function Onboarding() {
       // Route the user to their new proprietary PWA subdomain
       const domain = 'mealhouse.app';
       const isLocalhost = window.location.hostname.includes('localhost');
+      const isVercel = window.location.hostname.includes('vercel.app');
       
       if (isLocalhost) {
         // e.g. smiths.localhost:5173
         const port = window.location.port ? `:${window.location.port}` : '';
         window.location.href = `http://${slug}.localhost${port}`;
+      } else if (isVercel) {
+        // Vercel doesn't support wildcard subdomains natively on their shared domains.
+        // We simulate it using localStorage to prevent DNS/SSL errors for the prototype.
+        localStorage.setItem('previewTenant', slug);
+        window.location.href = '/'; 
       } else {
+        // Production
         window.location.href = `https://${slug}.${domain}`;
       }
     } catch (err) {
