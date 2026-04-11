@@ -1,15 +1,16 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --color-primary-50: color-mix(in srgb, var(--tenant-color-primary) 10%, white);
-  --color-primary-100: color-mix(in srgb, var(--tenant-color-primary) 20%, white);
-  --color-primary-200: color-mix(in srgb, var(--tenant-color-primary) 40%, white);
-  --color-primary-300: color-mix(in srgb, var(--tenant-color-primary) 60%, white);
-  --color-primary-400: color-mix(in srgb, var(--tenant-color-primary) 80%, white);
-  --color-primary-500: var(--tenant-color-primary);
-  --color-primary-600: color-mix(in srgb, var(--tenant-color-primary) 85%, black);
-  --color-primary-700: color-mix(in srgb, var(--tenant-color-primary) 70%, black);
-
+  --color-primary-50: #e5f5f7;
+  --color-primary-100: #cceaf0;
+  --color-primary-200: #99d5df;
+  --color-primary-300: #66c0ce;
+  --color-primary-400: #33aabd;
+  --color-primary-500: #0097b2;
+  --color-primary-600: #0097b2;
+  --color-primary-700: #0097b2;
+  
   --color-success-50: #effceb;
   --color-success-100: #dff9d6;
   --color-success-200: #beefad;
@@ -23,18 +24,13 @@
 }
 
 @layer base {
-  :root {
-    --tenant-color-primary: #0097b2; /* Fallback */
-    --tenant-color-secondary: #7ed957; /* Fallback */
-  }
-
   body {
     @apply bg-zinc-50 text-zinc-900 antialiased selection:bg-primary-100 selection:text-primary-700;
     margin: 0;
     padding: 0;
-    font-family: var(--font-family-sans);
   }
 
+  /* Custom Scrollbar for smooth mobile/desktop feel */
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -46,7 +42,17 @@
     @apply bg-zinc-300 rounded-full;
   }
   
+  /* Touch target safety for inputs */
   input[type="text"], input[type="file"], select, button {
     @apply min-h-[44px];
+  }
+
+  @media print {
+    nav, footer {
+      display: none !important;
+    }
+    body {
+      @apply bg-white;
+    }
   }
 }

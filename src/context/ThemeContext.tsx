@@ -3,6 +3,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 interface ThemeContextType {
   primaryColor: string;
   secondaryColor: string;
+  familyId: string;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -13,6 +14,7 @@ export function ThemeProvider({ subdomain, children }: { subdomain: string; chil
   const [theme, setTheme] = useState<ThemeContextType>({
     primaryColor: '#3b82f6', // Default blue
     secondaryColor: '#10b981', // Default emerald
+    familyId: '', // Default empty
   });
   const [loading, setLoading] = useState(true);
 
@@ -23,7 +25,8 @@ export function ThemeProvider({ subdomain, children }: { subdomain: string; chil
         if (family && family.theme) {
           const newTheme = {
             primaryColor: family.theme.primaryColor || '#3b82f6',
-            secondaryColor: family.theme.secondaryColor || '#10b981'
+            secondaryColor: family.theme.secondaryColor || '#10b981',
+            familyId: family.id
           };
           setTheme(newTheme);
           document.documentElement.style.setProperty('--tenant-color-primary', newTheme.primaryColor);

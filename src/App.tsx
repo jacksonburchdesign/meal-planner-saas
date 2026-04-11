@@ -6,11 +6,7 @@ import LandingPage from './pages/storefront/LandingPage';
 import Onboarding from './pages/storefront/Onboarding';
 
 // Tenant components
-import TenantLayout from './components/layout/TenantLayout';
-import TenantHomepage from './pages/tenant/Homepage';
-import RecipeDirectory from './pages/tenant/RecipeDirectory';
-import MealHistory from './pages/tenant/MealHistory';
-import GroceryList from './pages/tenant/GroceryList';
+import TenantApp from './tenant_app/App';
 
 // Providers
 import { ThemeProvider } from './context/ThemeContext';
@@ -60,20 +56,10 @@ function App() {
     );
   }
 
-  // Render Tenant PWA
+  // Render Premium Tenant PWA
   return (
     <ThemeProvider subdomain={subdomain}>
-      <BrowserRouter>
-        <Routes>
-          <Route element={<TenantLayout />}>
-            <Route path="/" element={<TenantHomepage />} />
-            <Route path="/recipes" element={<RecipeDirectory />} />
-            <Route path="/history" element={<MealHistory />} />
-            <Route path="/grocery" element={<GroceryList />} />
-            <Route path="*" element={<Navigate to="/" />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+      <TenantApp />
     </ThemeProvider>
   );
 }
