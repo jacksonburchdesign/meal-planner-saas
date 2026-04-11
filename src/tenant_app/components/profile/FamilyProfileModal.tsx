@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { Xmark } from 'iconoir-react';
 import { useFamilySettings } from '../../hooks';
 import type { SupportedThemeColor } from '../../hooks';
-import { ALLOWED_EMAILS } from '../../contexts/AuthContext';
+
 import { Button, Input } from '../common';
 
 export function FamilyProfileModal({ onClose }: { onClose: () => void }) {
@@ -93,20 +93,7 @@ export function FamilyProfileModal({ onClose }: { onClose: () => void }) {
              </div>
           </div>
 
-          {/* Section: Roster */}
-          <div className="space-y-3 pt-2">
-             <label className="block text-[12px] font-bold tracking-widest text-zinc-400 uppercase">Authorized Users</label>
-             <p className="text-[13px] text-zinc-500 font-medium mb-3 leading-relaxed">The following Google accounts are authorized to sign in and view the meal plan. Only secure invites are supported.</p>
-             
-             <div className="bg-zinc-50 border border-zinc-200/60 rounded-2xl overflow-hidden divide-y divide-zinc-200/50">
-                {ALLOWED_EMAILS.map(email => (
-                   <div key={email} className="px-4 py-3.5 flex items-center justify-between bg-white">
-                      <span className="text-[14px] font-semibold text-zinc-800">{email}</span>
-                      <span className="text-[11px] font-bold tracking-wider uppercase text-success-600 bg-success-50 px-2 py-0.5 rounded-md">Linked</span>
-                   </div>
-                ))}
-             </div>
-          </div>
+
 
         </div>
       </div>

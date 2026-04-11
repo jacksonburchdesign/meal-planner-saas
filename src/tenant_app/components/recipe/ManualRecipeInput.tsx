@@ -6,7 +6,7 @@ import { Xmark, EditPencil } from 'iconoir-react';
 import { Button, Input } from '../common';
 import { useNavigate } from 'react-router-dom';
 import type { Ingredient, RecipeCategory } from '../../types';
-import { useAuth } from '../../contexts/AuthContext';
+
 import { useTheme } from '../../../context/ThemeContext';
 
 function parseIngredientString(raw: string): Ingredient {
