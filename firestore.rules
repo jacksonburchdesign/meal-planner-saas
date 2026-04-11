@@ -1,0 +1,44 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+  
+    // Helper function to get the current user's familyId
+    function getUserFamilyId() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.familyId;
+    }
+
+    // Helper function to check if the user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // users collection
+    match /users/{userId} {
+      // User can only read and write their own user document
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // families collection
+    match /families/{familyId} {
+      // Allow public read; primarily for fetching theme and basic info needed for unauth PWA loading on subdomains.
+      // E.g., `where("subdomain_slug", "==", subdomain)`
+      allow read: if true; 
+      
+      // Only authenticated members of the family can write
+      allow write: if isAuthenticated() && getUserFamilyId() == familyId;
+    }
+
+    // recipes collection
+    match /recipes/{recipeId} {
+      allow read, update, delete: if isAuthenticated() && resource.data.familyId == getUserFamilyId();
+      // Allow create only if the incoming document's familyId matches the user's familyId
+      allow create: if isAuthenticated() && request.resource.data.familyId == getUserFamilyId();
+    }
+
+    // weekly_plans collection
+    match /weekly_plans/{planId} {
+      allow read, update, delete: if isAuthenticated() && resource.data.familyId == getUserFamilyId();
+      allow create: if isAuthenticated() && request.resource.data.familyId == getUserFamilyId();
+    }
+  }
+}
