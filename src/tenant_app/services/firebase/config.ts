@@ -1,21 +1,12 @@
-import { initializeApp } from 'firebase/app';
 import { getFunctions } from 'firebase/functions';
 import { getAnalytics } from 'firebase/analytics';
 
-const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
-};
+// Import existing central app instance so we don't accidentally initialize twice
+import { app, auth, db, storage } from '../../../config/firebase';
 
-export const app = initializeApp(firebaseConfig);
 export const functions = getFunctions(app, 'us-central1');
 
-export { auth, db, storage } from '../../../config/firebase';
+export { app, auth, db, storage };
 
 // Mock googleProvider for AuthContext
 import { GoogleAuthProvider } from 'firebase/auth';
