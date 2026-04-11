@@ -24,8 +24,11 @@ service cloud.firestore {
       // E.g., `where("subdomain_slug", "==", subdomain)`
       allow read: if true; 
       
-      // Only authenticated members of the family can write
-      allow write: if isAuthenticated() && getUserFamilyId() == familyId;
+      // Allow creation by any authenticated user
+      allow create: if isAuthenticated();
+      
+      // Only authenticated members of the family can update or delete
+      allow update, delete: if isAuthenticated() && getUserFamilyId() == familyId;
     }
 
     // recipes collection

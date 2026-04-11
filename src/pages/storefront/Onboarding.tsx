@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { createFamilyProfile } from '../../services/firestore';
+import { createFamilyProfile, createUserRecord } from '../../services/firestore';
+import { auth } from '../../config/firebase';
 
 export default function Onboarding() {
   const [familyName, setFamilyName] = useState('');
@@ -12,12 +13,18 @@ export default function Onboarding() {
     e.preventDefault();
     if (!familyName) return;
 
+    if (!auth.currentUser) {
+      alert("Missing authentication. Please sign in again.");
+      return;
+    }
+
     setLoading(true);
     // Simple slug generator
     const slug = familyName.toLowerCase().replace(/[^a-z0-9]/g, '');
     const familyId = `fam_${slug}_${Math.floor(Math.random() * 1000)}`;
 
     try {
+      // Create the family document
       await createFamilyProfile(familyId, {
         subdomain_slug: slug,
         name: familyName,
@@ -30,6 +37,14 @@ export default function Onboarding() {
           secondaryColor: '#10b981' // Hardcoded secondary for now
         }
       });
+      
+      // Explicitly link the current user to this family
+      await createUserRecord(auth.currentUser.uid, {
+        email: auth.currentUser.email || '',
+        subscriptionTier: 'free',
+        familyId: familyId
+      });
+
       // Route the user to their new proprietary PWA subdomain
       const domain = 'mealhouse.app';
       const isLocalhost = window.location.hostname.includes('localhost');
