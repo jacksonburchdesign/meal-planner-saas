@@ -24,15 +24,22 @@ function App() {
       return parts.length > 1 ? parts[0] : null; // matches 'family' from 'family.localhost'
     }
     
+    // Vercel deployment edge cases
+    if (host === 'meal-planner-saas.vercel.app' || host === 'www.meal-planner-saas.vercel.app') {
+      return null;
+    }
+    
     // Production domain: mealhouse.app
     const domain = 'mealhouse.app';
     if (host === domain || host === `www.${domain}`) {
       return null;
     }
     
-    // Fallback logic for IPs or unknown domains, consider it storefront
-    if (host.split('.').length < 3) return null;
+    // Fallback logic for IPs or unknown domains (e.g. 192.168.x.x)
+    const isIpAddress = /^[0-9.]+$/.test(host);
+    if (isIpAddress || host.split('.').length < 3) return null;
 
+    // It's a subdomain!
     const subdomain = host.replace(`.${domain}`, '');
     return subdomain;
   };

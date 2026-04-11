@@ -17,18 +17,19 @@ export default defineConfig({
         theme_color: '#ffffff',
         background_color: '#ffffff',
         display: 'standalone',
-        icons: [
-          {
-            src: '/pwa-192x192.png',
-            sizes: '192x192',
-            type: 'image/png'
-          },
-          {
-            src: '/pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png'
-          }
-        ]
+        // TODO: Add real PWA icons into the /public directory and uncomment this block.
+        // icons: [
+        //   {
+        //     src: '/pwa-192x192.png',
+        //     sizes: '192x192',
+        //     type: 'image/png'
+        //   },
+        //   {
+        //     src: '/pwa-512x512.png',
+        //     sizes: '512x512',
+        //     type: 'image/png'
+        //   }
+        // ]
       }
     })
   ],
