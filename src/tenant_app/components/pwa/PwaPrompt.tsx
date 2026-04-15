@@ -67,7 +67,7 @@ export function PwaPrompt() {
         </button>
         
         <div className="flex items-center gap-4">
-          <img src="/icon.png" alt="App Icon" className="w-14 h-14 rounded-2xl shadow-lg border border-white/5" />
+          <img src="/meal-planner-logo.svg" alt="App Icon" className="w-14 h-14 rounded-2xl shadow-lg border border-white/5 object-contain" />
           <div>
             <h3 className="text-white font-bold text-[17px] tracking-tight">Install Meal Vault</h3>
             <p className="text-zinc-400 text-[13px] leading-tight mt-0.5 pr-6">

@@ -25,7 +25,7 @@ export function Login() {
         className="w-full max-w-sm bg-white/80 backdrop-blur-2xl rounded-[32px] p-8 shadow-[0_8px_40px_rgb(0,0,0,0.06)] border border-zinc-100 flex flex-col items-center text-center relative z-10"
       >
         <div className="w-24 h-24 rounded-[28px] mb-6 overflow-hidden drop-shadow-xl">
-          <img src="/icon.png" alt="Meal Vault" className="w-full h-full object-cover scale-[1.05]" />
+          <img src="/meal-planner-logo.svg" alt="Meal Vault" className="w-full h-full object-contain scale-[1.05]" />
         </div>
         
         <h1 className="text-2xl font-bold text-zinc-900 mb-2 tracking-tight">Family Meal Planner</h1>
