@@ -93,3 +93,20 @@ export async function createUserRecord(uid: string, userData: Omit<AppUser, "uid
     throw error;
   }
 }
+
+/**
+ * Fetch a user record by UID (used on sign-in to find their existing family).
+ */
+export async function getUserRecord(uid: string): Promise<AppUser | null> {
+  try {
+    const { getDoc } = await import("firebase/firestore");
+    const snap = await getDoc(doc(db, "users", uid));
+    if (snap.exists()) {
+      return { uid: snap.id, ...snap.data() } as AppUser;
+    }
+    return null;
+  } catch (error) {
+    console.error("Error fetching user record:", error);
+    return null;
+  }
+}

@@ -4,6 +4,10 @@ import { useMemo } from 'react';
 // Storefront components
 import LandingPage from './pages/storefront/LandingPage';
 import Onboarding from './pages/storefront/Onboarding';
+import AuthPage from './pages/storefront/AuthPage';
+import PrivacyPolicy from './pages/storefront/PrivacyPolicy';
+import TermsOfService from './pages/storefront/TermsOfService';
+import StorefrontLayout from './layouts/StorefrontLayout';
 
 // Tenant components
 import TenantApp from './tenant_app/App';
@@ -48,8 +52,13 @@ function App() {
     return (
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/onboarding" element={<Onboarding />} />
+          <Route element={<StorefrontLayout />}>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/onboarding" element={<Onboarding />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<TermsOfService />} />
+          </Route>
+          <Route path="/auth" element={<AuthPage />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </BrowserRouter>
