@@ -7,6 +7,7 @@ import { History } from './pages/History';
 import { Ingredients } from './pages/Ingredients';
 import { RecipeDetails } from './pages/RecipeDetails';
 import { Login } from './pages/Login';
+import { Success } from './pages/Success';
 import { PwaPrompt } from './components/pwa/PwaPrompt';
 import { useFamilySettings } from './hooks';
 
@@ -35,6 +36,7 @@ function App() {
         <AppThemeWrapper>
           <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/success" element={<Success />} />
             
             {/* Protected Routes */}
             <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />

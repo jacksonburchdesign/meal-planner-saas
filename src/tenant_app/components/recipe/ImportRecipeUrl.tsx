@@ -47,7 +47,7 @@ export function ImportRecipeUrl() {
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-zinc-900/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => !loading && setIsOpen(false)} />
 
-          <div className="bg-white w-full max-w-sm rounded-[32px] p-6 relative z-10 animate-in zoom-in-95 duration-200 shadow-2xl">
+          <div className="bg-white/90 backdrop-blur-3xl border-t border-white/40 w-full max-w-sm rounded-[32px] p-6 relative z-10 animate-in zoom-in-95 duration-200 shadow-2xl">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-bold text-[19px] text-zinc-900 tracking-tight">Import from URL</h3>
               <button onClick={() => !loading && setIsOpen(false)} className="text-zinc-400 p-1.5 hover:bg-zinc-100 rounded-full transition-colors">
@@ -56,7 +56,7 @@ export function ImportRecipeUrl() {
             </div>
 
             <p className="text-[14.5px] text-zinc-500 mb-6 font-medium leading-relaxed">
-              Extract the ingredients and instructions from any shit food blog! (No more ads or life stories)
+              Extract only the ingredients and instructions from any food blog. (Skip the ads and life stories!)
             </p>
 
             {error && (

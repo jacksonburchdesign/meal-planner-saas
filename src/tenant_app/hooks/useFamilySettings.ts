@@ -1,17 +1,27 @@
 import { useState, useEffect } from 'react';
-import { doc, onSnapshot, setDoc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../services/firebase/config';
 
 export type SupportedThemeColor = 'teal' | 'rose' | 'orange' | 'purple' | 'emerald' | 'blue';
 
 export interface FamilySettings {
   familyName: string;
-  themeColor: SupportedThemeColor;
+  themeColor: string;
+  iconUrl?: string;
+  iconName?: string;
+  stripeCustomerId?: string;
+  demographics: {
+    adults: number;
+    children: number;
+  };
 }
 
 const DEFAULT_SETTINGS: FamilySettings = {
   familyName: 'Our Family',
-  themeColor: 'teal'
+  themeColor: '#0097b2', // Using hex so the color-picker does not warn during initial loading frame
+  iconUrl: '/meal-planner-logo.svg',
+  iconName: 'Home',
+  demographics: { adults: 2, children: 0 }
 };
 
 const THEME_MAP: Record<SupportedThemeColor, Record<string, string>> = {
@@ -35,30 +45,86 @@ const THEME_MAP: Record<SupportedThemeColor, Record<string, string>> = {
   }
 };
 
-export function applyThemeVariables(theme: SupportedThemeColor) {
-  const palette = THEME_MAP[theme] || THEME_MAP.teal;
+export function applyThemeVariables(themeOrHex: string) {
   const root = document.documentElement;
-  Object.keys(palette).forEach(key => {
-    root.style.setProperty(`--color-primary-${key}`, palette[key]);
-  });
+
+  if (THEME_MAP[themeOrHex as SupportedThemeColor]) {
+    const palette = THEME_MAP[themeOrHex as SupportedThemeColor];
+    // Legacy support: set the base variable based on the '500' weight
+    root.style.setProperty('--tenant-color-primary', palette['500']);
+    return;
+  }
+
+  // Set the core CSS variable. Tailwind v4's index.css will automatically calculate `--color-primary-50` through `700`.
+  root.style.setProperty('--tenant-color-primary', themeOrHex);
 }
+
+const getSubdomain = () => {
+  const host = window.location.hostname;
+  if (host.includes('localhost') || host.includes('127.0.0.1')) {
+    const parts = host.split('.');
+    return parts.length > 1 ? parts[0] : null; 
+  }
+  if (host.includes('vercel.app')) {
+    return localStorage.getItem('previewTenant') || null;
+  }
+  const domain = 'mealhouse.app';
+  if (host === domain || host === `www.${domain}`) return null;
+  return host.replace(`.${domain}`, '');
+};
 
 export function useFamilySettings() {
   const [settings, setSettings] = useState<FamilySettings>(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(true);
+  const [familyDocId, setFamilyDocId] = useState<string | null>(null);
 
   useEffect(() => {
-    const unsub = onSnapshot(doc(db, 'settings', 'global'), (docSnap) => {
-      if (docSnap.exists()) {
-        const data = docSnap.data() as Partial<FamilySettings>;
-        const merged = { ...DEFAULT_SETTINGS, ...data };
+    const slug = getSubdomain();
+    if (!slug) {
+      setLoading(false);
+      return;
+    }
+
+    const q = query(collection(db, 'families'), where('subdomain_slug', '==', slug));
+    
+    const unsub = onSnapshot(q, (snapshot) => {
+      if (!snapshot.empty) {
+        const docSnap = snapshot.docs[0];
+        setFamilyDocId(docSnap.id);
+        const data = docSnap.data();
+        
+        // Map from families schema to FamilySettings interface expected by UI
+        let mappedColor = data.theme?.primaryColor || data.primaryColor || data.themeColor || DEFAULT_SETTINGS.themeColor;
+        
+        // Convert legacy string color to Hex code so the HTML Color Picker does not break
+        if (THEME_MAP[mappedColor as SupportedThemeColor]) {
+           mappedColor = THEME_MAP[mappedColor as SupportedThemeColor]['500'];
+        }
+
+        const merged: FamilySettings = { 
+          familyName: data.familyName || data.name || DEFAULT_SETTINGS.familyName,
+          themeColor: mappedColor,
+          iconUrl: data.theme?.iconUrl || data.iconUrl || DEFAULT_SETTINGS.iconUrl,
+          iconName: data.theme?.iconName || data.iconName || DEFAULT_SETTINGS.iconName,
+          stripeCustomerId: data.stripeCustomerId || undefined,
+          demographics: data.demographics ? {
+             adults: data.demographics.adults !== undefined ? Number(data.demographics.adults) : DEFAULT_SETTINGS.demographics.adults,
+             children: data.demographics.children !== undefined ? Number(data.demographics.children) : DEFAULT_SETTINGS.demographics.children,
+          } : DEFAULT_SETTINGS.demographics
+        };
         setSettings(merged);
         applyThemeVariables(merged.themeColor);
       } else {
-        // Initialize if doesn't exist
-        setSettings(DEFAULT_SETTINGS);
-        applyThemeVariables(DEFAULT_SETTINGS.themeColor);
+        // Subdomain not found
+        // Ensure default parses to hex
+        const defaultColorHex = THEME_MAP[DEFAULT_SETTINGS.themeColor as SupportedThemeColor]?.['500'] || DEFAULT_SETTINGS.themeColor;
+        
+        setSettings({...DEFAULT_SETTINGS, themeColor: defaultColorHex});
+        applyThemeVariables(defaultColorHex);
       }
+      setLoading(false);
+    }, (error) => {
+      console.error("Error fetching family settings:", error);
       setLoading(false);
     });
 
@@ -66,11 +132,21 @@ export function useFamilySettings() {
   }, []);
 
   const updateSettings = async (updates: Partial<FamilySettings>) => {
-    // Optimistic application of theme
     if (updates.themeColor) {
-      applyThemeVariables(updates.themeColor);
+      applyThemeVariables(updates.themeColor); // Optimistic UI
     }
-    await setDoc(doc(db, 'settings', 'global'), updates, { merge: true });
+    
+    if (familyDocId) {
+      // Map back to families schema for persistence
+      const dbUpdates: any = {};
+      if (updates.familyName !== undefined) dbUpdates.familyName = updates.familyName;
+      if (updates.themeColor !== undefined) dbUpdates['theme.primaryColor'] = updates.themeColor;
+      if (updates.iconUrl !== undefined) dbUpdates['theme.iconUrl'] = updates.iconUrl;
+      if (updates.iconName !== undefined) dbUpdates['theme.iconName'] = updates.iconName;
+      if (updates.demographics !== undefined) dbUpdates.demographics = updates.demographics;
+      
+      await updateDoc(doc(db, 'families', familyDocId), dbUpdates);
+    }
   };
 
   return { settings, loading, updateSettings };

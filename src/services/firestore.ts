@@ -15,6 +15,8 @@ export interface Family {
   id: string; // The familyId
   subdomain_slug: string;
   name: string;
+  status?: "unpaid" | "active";
+  authorizedEmails?: string[];
   demographics: {
     adults: number;
     children: number;
@@ -24,6 +26,7 @@ export interface Family {
     primaryColor: string;
     secondaryColor: string;
     iconUrl?: string;
+    iconName?: string;
   };
 }
 

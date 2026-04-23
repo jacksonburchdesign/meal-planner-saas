@@ -38,8 +38,20 @@ service cloud.firestore {
       allow create: if isAuthenticated() && request.resource.data.familyId == getUserFamilyId();
     }
 
-    // weekly_plans collection
-    match /weekly_plans/{planId} {
+    // weeklyMeals collection (was erroneously weekly_plans)
+    match /weeklyMeals/{planId} {
+      allow read, update, delete: if isAuthenticated() && resource.data.familyId == getUserFamilyId();
+      allow create: if isAuthenticated() && request.resource.data.familyId == getUserFamilyId();
+    }
+
+    // pinterestImports collection
+    match /pinterestImports/{importId} {
+      allow read, update, delete: if isAuthenticated() && resource.data.familyId == getUserFamilyId();
+      allow create: if isAuthenticated() && request.resource.data.familyId == getUserFamilyId();
+    }
+
+    // mealHistory collection
+    match /mealHistory/{historyId} {
       allow read, update, delete: if isAuthenticated() && resource.data.familyId == getUserFamilyId();
       allow create: if isAuthenticated() && request.resource.data.familyId == getUserFamilyId();
     }

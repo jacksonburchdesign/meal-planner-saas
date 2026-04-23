@@ -163,7 +163,7 @@ export default function AuthPage() {
             justifyContent: 'center',
             gap: 12,
             padding: '14px 24px',
-            backgroundColor: loading ? '#8ab8d8' : '#1a3a5c',
+            backgroundColor: loading ? 'hsl(var(--cta-bg) / 0.5)' : 'hsl(var(--cta-bg))',
             color: '#fff',
             border: 'none',
             borderRadius: 100,
@@ -176,10 +176,10 @@ export default function AuthPage() {
             minHeight: 'unset',
           }}
           onMouseEnter={(e) => {
-            if (!loading) (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#2d5a8a';
+            if (!loading) (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'hsl(var(--cta-hover))';
           }}
           onMouseLeave={(e) => {
-            if (!loading) (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#1a3a5c';
+            if (!loading) (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'hsl(var(--cta-bg))';
           }}
         >
           {/* Google G */}

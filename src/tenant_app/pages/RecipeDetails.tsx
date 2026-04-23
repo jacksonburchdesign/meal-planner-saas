@@ -371,8 +371,8 @@ export function RecipeDetails() {
                      })()}
                   </a>
                ) : (
-                  <span className="text-[14px] font-medium text-zinc-600 capitalize bg-zinc-100 px-3 py-1 rounded-full">
-                     {recipe.source === 'scanned' ? '📷 Image Scan' : '✍️ Manual Entry'}
+                  <span className="text-[14px] font-medium text-zinc-600 capitalize bg-zinc-100 px-3 py-1 rounded-full flex items-center justify-center gap-1.5 w-max">
+                     {recipe.source === 'camera' ? <>📸 Camera Scan</> : <>✍️ Manual Entry</>}
                   </span>
                )}
             </div>

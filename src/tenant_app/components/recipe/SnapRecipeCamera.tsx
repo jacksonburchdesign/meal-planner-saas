@@ -13,8 +13,8 @@ export function SnapRecipeCamera() {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    // Convert file list to array and cap at 2 files maximum (total combined)
-    const targetFiles = Array.from(files).slice(0, 2 - pendingImages.length);
+    // Convert file list to array and cap at 5 files maximum (total combined)
+    const targetFiles = Array.from(files).slice(0, 5 - pendingImages.length);
 
     try {
       const parsedImages = await Promise.all(
@@ -96,10 +96,11 @@ export function SnapRecipeCamera() {
       </div>
 
       {pendingImages.length > 0 && createPortal(
-        <div 
-          className="fixed inset-0 z-[9999] bg-zinc-900/95 backdrop-blur-xl flex flex-col px-6 pt-6 animate-in fade-in duration-300"
-          style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))' }}
-        >
+        <div className="fixed inset-0 z-[9999] bg-zinc-900/95 backdrop-blur-xl flex justify-center animate-in fade-in duration-300">
+          <div 
+            className="w-full max-w-md h-full flex flex-col px-6 pt-6 relative shadow-2xl bg-black/20"
+            style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))' }}
+          >
           <div className="flex justify-between items-center mb-6 mt-[env(safe-area-inset-top)] flex-none">
              <h2 className="text-white text-xl font-bold">Scanned Pages ({pendingImages.length}/2)</h2>
              <button onClick={() => setPendingImages([])} className="p-2 text-zinc-400 hover:text-white transition-colors">
@@ -122,7 +123,7 @@ export function SnapRecipeCamera() {
                    </button>
                 </div>
              ))}
-             {pendingImages.length < 2 && (
+             {pendingImages.length < 5 && (
                 <div 
                   onClick={() => fileInputRef.current?.click()}
                   className="w-[280px] h-full flex-shrink-0 snap-center rounded-2xl border-2 border-dashed border-white/20 hover:border-white/40 hover:bg-white/5 flex flex-col items-center justify-center text-white/50 cursor-pointer transition-all"
@@ -150,6 +151,7 @@ export function SnapRecipeCamera() {
                    </>
                  )}
              </Button>
+          </div>
           </div>
         </div>,
         document.body

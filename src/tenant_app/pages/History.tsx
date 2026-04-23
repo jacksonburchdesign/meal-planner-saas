@@ -2,18 +2,22 @@ import { PageWrapper } from '../components/layout/PageWrapper';
 import { Card, Badge } from '../components/common';
 import { useRecipes } from '../hooks';
 import { useEffect, useState } from 'react';
-import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { collection, query, orderBy, limit, onSnapshot, where } from 'firebase/firestore';
 import { db } from '../services/firebase/config';
+import { useTheme } from '../../context/ThemeContext';
 import type { MealHistoryLog } from '../types';
 import { Clock } from 'iconoir-react';
 
 export function History() {
   const [history, setHistory] = useState<MealHistoryLog[]>([]);
   const { recipes } = useRecipes();
+  const { familyId } = useTheme();
 
   useEffect(() => {
+    if (!familyId) return;
     const q = query(
       collection(db, 'mealHistory'),
+      where('familyId', '==', familyId),
       orderBy('date', 'desc'),
       limit(30) // Roughly 1 month
     );

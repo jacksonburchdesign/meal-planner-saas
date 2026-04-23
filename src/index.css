@@ -26,10 +26,34 @@
   :root {
     --tenant-color-primary: #0097b2; /* Fallback */
     --tenant-color-secondary: #7ed957; /* Fallback */
+    
+    /* Force the Warmth - Deeper Oatmeal/Parchment to ensure it doesn't look white */
+    --bg-app: 40 33% 94%; 
+    --bg-frame: 40 35% 91%; 
+    
+    /* Primary Text - Deep Espresso/Charcoal instead of Navy */
+    --text-primary: 30 20% 18%; 
+    --text-secondary: 30 15% 45%;
+    
+    /* Change default accent from Tech Blue to Organic Culinary Green (Sage) */
+    --accent-h: 150; 
+    --accent-s: 40%;
+    --accent-l: 45%;
+    
+    /* Feature Cards - Anchor these to the warm background hue (40) so they look like stone/paper, NOT the accent hue */
+    --card-1: 40 25% 89%;
+    --card-2: 40 25% 85%;
+    --card-3: 40 25% 81%;
+    --card-4: 40 25% 77%;
+    --card-5: 40 25% 73%;
+    
+    /* CTA Button - Deep Forest Green */
+    --cta-bg: 150 50% 22%;
+    --cta-hover: 150 50% 16%;
   }
 
   body {
-    @apply bg-zinc-50 text-zinc-900 antialiased selection:bg-primary-100 selection:text-primary-700;
+    @apply bg-[hsl(var(--bg-app))] text-[hsl(var(--text-primary))] antialiased selection:bg-[hsl(var(--cta-bg)_/_0.15)] selection:text-[hsl(var(--cta-bg))];
     margin: 0;
     padding: 0;
     font-family: var(--font-family-sans);

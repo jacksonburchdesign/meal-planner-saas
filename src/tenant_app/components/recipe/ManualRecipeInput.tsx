@@ -141,7 +141,7 @@ export function ManualRecipeInput() {
         <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">
           <div className="absolute inset-0 bg-zinc-900/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => !saving && setIsOpen(false)} />
 
-          <div className="bg-white w-full max-w-lg rounded-t-[32px] sm:rounded-[32px] flex flex-col relative z-10 animate-in slide-in-from-bottom-10 sm:zoom-in-95 duration-200 shadow-2xl max-h-[85vh]">
+          <div className="bg-white/90 backdrop-blur-3xl border-t border-white/40 w-full max-w-lg rounded-t-[32px] sm:rounded-[32px] flex flex-col relative z-10 animate-in slide-in-from-bottom-10 sm:zoom-in-95 duration-200 shadow-2xl max-h-[85vh]">
             
             {/* Sticky Header */}
             <div className="flex items-center justify-between p-6 border-b border-zinc-100 shrink-0">
@@ -208,7 +208,7 @@ export function ManualRecipeInput() {
               <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100 space-y-3">
                 <div className="flex items-center justify-between pb-1">
                   <label className="block text-[13px] font-bold tracking-wide text-zinc-500 uppercase">Ingredients</label>
-                  <button onClick={() => handleAddField('ing')} className="bg-white border border-zinc-200 text-primary-600 text-[12px] font-bold px-3 py-1.5 rounded-lg active:scale-95 transition-all">
+                  <button onClick={() => handleAddField('ing')} className="bg-white/90 backdrop-blur-3xl border-t border-white/40 border border-zinc-200 text-primary-600 text-[12px] font-bold px-3 py-1.5 rounded-lg active:scale-95 transition-all">
                     + Add
                   </button>
                 </div>
@@ -231,7 +231,7 @@ export function ManualRecipeInput() {
               <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100 space-y-3">
                 <div className="flex items-center justify-between pb-1">
                   <label className="block text-[13px] font-bold tracking-wide text-zinc-500 uppercase">Instructions</label>
-                  <button onClick={() => handleAddField('inst')} className="bg-white border border-zinc-200 text-primary-600 text-[12px] font-bold px-3 py-1.5 rounded-lg active:scale-95 transition-all">
+                  <button onClick={() => handleAddField('inst')} className="bg-white/90 backdrop-blur-3xl border-t border-white/40 border border-zinc-200 text-primary-600 text-[12px] font-bold px-3 py-1.5 rounded-lg active:scale-95 transition-all">
                     + Step
                   </button>
                 </div>

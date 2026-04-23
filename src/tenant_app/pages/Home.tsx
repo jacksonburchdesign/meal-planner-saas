@@ -149,10 +149,10 @@ export function Home() {
       </div>
 
       {addingSideTo && createPortal(
-        <div className="fixed inset-0 z-[100] flex flex-col justify-end p-0">
+        <div className="fixed inset-0 z-[100] flex flex-col justify-end p-0 items-center">
           <div className="absolute inset-0 bg-zinc-900/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setAddingSideTo(null)} />
 
-          <div className="bg-white w-full max-h-[85vh] rounded-t-[32px] p-6 relative z-10 animate-in slide-in-from-bottom-8 duration-200 shadow-2xl flex flex-col pb-[env(safe-area-inset-bottom)]">
+          <div className="bg-white/90 backdrop-blur-3xl border-t border-white/40 w-full max-w-md max-h-[85vh] rounded-t-[32px] p-6 relative z-10 animate-in slide-in-from-bottom-8 duration-200 shadow-2xl flex flex-col pb-[env(safe-area-inset-bottom)]">
             <div className="flex items-center justify-between mb-4 flex-none pt-2">
               <h3 className="font-bold text-[19px] text-zinc-900 tracking-tight">Select a Side Dish</h3>
               <button onClick={() => setAddingSideTo(null)} className="text-zinc-400 p-1.5 hover:bg-zinc-100 rounded-full transition-colors">

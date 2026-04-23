@@ -6,8 +6,8 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 export function Card({ children, interactive = false, className = '', ...props }: CardProps) {
-  const baseStyles = "bg-white rounded-2xl border border-zinc-100 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.06)] overflow-hidden relative";
-  const interactiveStyles = interactive ? "transition-all duration-300 hover:shadow-[0_8px_24px_-8px_rgba(0,0,0,0.12)] hover:border-zinc-200 hover:-translate-y-0.5 active:scale-[0.98] active:translate-y-0 cursor-pointer" : "";
+  const baseStyles = "bg-white/70 backdrop-blur-3xl rounded-2xl border border-white/60 shadow-[0_4px_24px_-8px_rgba(0,0,0,0.06)] overflow-hidden relative";
+  const interactiveStyles = interactive ? "transition-all duration-300 hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.12)] hover:border-white/80 hover:-translate-y-0.5 active:scale-[0.98] active:translate-y-0 cursor-pointer" : "";
 
   return (
     <div className={`${baseStyles} ${interactiveStyles} ${className}`} {...props}>

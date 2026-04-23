@@ -9,7 +9,7 @@ export default function TermsOfService() {
       width: '100%',
       backgroundColor: '#f8fafc',
       fontFamily: '"Inter", system-ui, sans-serif',
-      color: '#0d2540',
+      color: 'hsl(var(--text-primary))',
       padding: '40px 24px',
       boxSizing: 'border-box'
     }}>
@@ -20,7 +20,7 @@ export default function TermsOfService() {
             display: 'inline-flex', 
             alignItems: 'center', 
             gap: 8, 
-            color: '#1f60a8', 
+            color: 'hsl(var(--cta-bg))', 
             textDecoration: 'none',
             fontWeight: 600,
             marginBottom: 32

@@ -8,7 +8,7 @@ export interface Recipe {
   ingredients: Ingredient[];
   instructions: string[];
   imageUrl?: string;
-  source?: 'manual' | 'scanned' | 'url';
+  source?: 'manual' | 'camera' | 'url' | 'pinterest';
   sourceUrl?: string;
   createdAt: number;
   updatedAt: number;
