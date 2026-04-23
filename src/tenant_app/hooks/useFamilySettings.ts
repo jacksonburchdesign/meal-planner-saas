@@ -10,6 +10,7 @@ export interface FamilySettings {
   iconUrl?: string;
   iconName?: string;
   stripeCustomerId?: string;
+  authorizedEmails?: string[];
   demographics: {
     adults: number;
     children: number;

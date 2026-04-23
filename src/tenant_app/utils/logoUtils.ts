@@ -7,19 +7,6 @@ import type { ReactElement } from 'react';
  * Generates a PNG representation of a custom Iconoir icon layered over the standard App template.
  * Uploads the result to Firebase Storage under the family's specific identifier, to overwrite their app logo.
  */
-function lightenHex(hexCode: string, percent: number): string {
-    let hex = hexCode.replace('#', '');
-    if (hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
-    if (hex.length !== 6) return hexCode; // Return original if not parseable
-    let r = parseInt(hex.substring(0,2), 16);
-    let g = parseInt(hex.substring(2,4), 16);
-    let b = parseInt(hex.substring(4,6), 16);
-    r = Math.min(255, Math.floor(r + (255 - r) * (percent / 100)));
-    g = Math.min(255, Math.floor(g + (255 - g) * (percent / 100)));
-    b = Math.min(255, Math.floor(b + (255 - b) * (percent / 100)));
-    return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;
-}
-
 export async function generatePngLogoUrl(familyId: string, iconElement: ReactElement, themeColor: string = '#5793d9'): Promise<string> {
   return new Promise((resolve, reject) => {
     const hiddenDiv = document.createElement('div');
