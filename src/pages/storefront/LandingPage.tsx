@@ -25,10 +25,19 @@ function CtaButton({ onClick }: { onClick: () => void }) {
       className="flex items-center gap-2.5 self-start px-9 py-4 rounded-full border-none text-white text-xl font-bold font-['League_Spartan'] cursor-pointer tracking-wide"
     >
       Build My App
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <motion.svg 
+        width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+        animate={{ x: [0, 5, 0, 5, 0, 5, 0, 0] }}
+        transition={{
+          duration: 8,
+          times: [0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 1],
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+      >
         <path d="M5 12h14"></path>
         <path d="m12 5 7 7-7 7"></path>
-      </svg>
+      </motion.svg>
     </motion.button>
   );
 }

@@ -48,7 +48,17 @@ import {
   Planet,
   Eye,
   Wifi,
-  BatteryFull
+  BatteryFull,
+  BreadSlice,
+  IceCream,
+  Fridge,
+  Cutlery,
+  Egg,
+  Cookie,
+  Bbq,
+  Chocolate,
+  OrganicFood,
+  Vegan
 } from 'iconoir-react';
 
 export const SHARED_ICON_OPTIONS = [
@@ -101,5 +111,15 @@ export const SHARED_ICON_OPTIONS = [
   { id: '47', name: 'Planet', icon: Planet },
   { id: '48', name: 'Eye', icon: Eye },
   { id: '49', name: 'Wifi', icon: Wifi },
-  { id: '50', name: 'Battery', icon: BatteryFull }
+  { id: '50', name: 'Battery', icon: BatteryFull },
+  { id: '51', name: 'Bread', icon: BreadSlice },
+  { id: '52', name: 'Ice Cream', icon: IceCream },
+  { id: '53', name: 'Fridge', icon: Fridge },
+  { id: '54', name: 'Cutlery', icon: Cutlery },
+  { id: '55', name: 'Egg', icon: Egg },
+  { id: '56', name: 'Cookie', icon: Cookie },
+  { id: '57', name: 'BBQ', icon: Bbq },
+  { id: '58', name: 'Chocolate', icon: Chocolate },
+  { id: '59', name: 'Organic', icon: OrganicFood },
+  { id: '60', name: 'Vegan', icon: Vegan }
 ];

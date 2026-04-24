@@ -7,7 +7,7 @@ import {
   Community,
   CalendarCheck,
   Cart,
-  Apple, AppleHalf, PizzaSlice, Cookie, HalfCookie, CoffeeCup, Cutlery, Fridge, IceCream, BreadSlice, Egg, Fish, Home
+  Apple, AppleHalf, PizzaSlice, Cookie, HalfCookie, CoffeeCup, Cutlery, Fridge, IceCream, BreadSlice, Egg, Fish, Home, Book, Clock, List
 } from 'iconoir-react';
 import { SHARED_ICON_OPTIONS as ICON_OPTIONS } from '../utils/icons';
 import { CookieBanner } from '../components/CookieBanner';
@@ -65,9 +65,11 @@ export interface MockupState {
   primaryColor: string;
   selectedIconName: string;
   stage: 1 | 2;
+  logoType?: 'icon' | 'letters';
+  logoLetters?: string;
 }
 
-function DynamicLogoPreview({ primaryColor, IconComp }: { primaryColor: string, IconComp: any }) {
+function DynamicLogoPreview({ primaryColor, IconComp, logoType, logoLetters }: { primaryColor: string, IconComp: any, logoType?: 'icon'|'letters', logoLetters?: string }) {
   const [svgStr, setSvgStr] = useState<string>('');
   
   useEffect(() => {
@@ -90,74 +92,199 @@ function DynamicLogoPreview({ primaryColor, IconComp }: { primaryColor: string, 
          <div style={{ width: '100%', height: '100%', backgroundColor: 'hsl(var(--bg-frame))', borderRadius: '28px' }} />
        )}
        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <IconComp width={52} height={52} strokeWidth={2.5} color={primaryColor} />
+          {logoType === 'letters' && logoLetters ? (
+            <span style={{ color: primaryColor, fontSize: '3.5rem', fontWeight: 800, fontFamily: '"League Spartan", system-ui, sans-serif', letterSpacing: '-0.02em', lineHeight: 1 }}>{logoLetters}</span>
+          ) : (
+            <IconComp width={52} height={52} strokeWidth={2.5} color={primaryColor} />
+          )}
        </div>
     </div>
   );
 }
 
 function PhoneMockup({ mockupState }: { mockupState: MockupState }) {
-  const { familyName, primaryColor, selectedIconName, stage } = mockupState;
+  const { familyName, primaryColor, selectedIconName, stage, logoType, logoLetters } = mockupState;
   const SelectedIconComp = ICON_OPTIONS.find(i => i.name === selectedIconName)?.icon || Home;
 
   return (
     <div
-      className="w-full h-full rounded-[32px] overflow-hidden border-[3px] border-[hsl(var(--bg-frame))] bg-white relative shadow-[0_0_0_7px_rgba(255,255,255,0.65),_0_32px_72px_rgba(0,0,0,0.15)]"
-      style={{ isolation: 'isolate' }}
+      className="w-full h-full rounded-[38px] relative transition-all duration-500"
+      style={{ 
+        isolation: 'isolate',
+        boxShadow: `
+          0 0 0 10px hsl(var(--cta-bg)), 
+          -1px 2px 1px 10px rgba(255,255,255,0.2),
+          inset 0 0 0 1px rgba(255,255,255,0.1),
+          0 35px 60px -15px rgba(0,0,0,0.5),
+          0 20px 30px -10px rgba(0,0,0,0.3)
+        `
+      }}
     >
-      {/* Notch */}
-      <div className="absolute top-[9px] left-1/2 -translate-x-1/2 w-16 h-[9px] bg-[hsl(var(--bg-frame))] rounded-full z-[100]" />
+      {/* Hardware Buttons (iPhone 16 Pro Layout) */}
+      {/* Action Button */}
+      <div className="absolute -left-[12px] top-[80px] w-[2px] h-[22px] bg-[hsl(var(--cta-bg))] rounded-l-[4px] shadow-[-1px_0_2px_rgba(0,0,0,0.3)] brightness-90" />
+      {/* Volume Up */}
+      <div className="absolute -left-[12px] top-[120px] w-[2px] h-[45px] bg-[hsl(var(--cta-bg))] rounded-l-[4px] shadow-[-1px_0_2px_rgba(0,0,0,0.3)] brightness-90" />
+      {/* Volume Down */}
+      <div className="absolute -left-[12px] top-[175px] w-[2px] h-[45px] bg-[hsl(var(--cta-bg))] rounded-l-[4px] shadow-[-1px_0_2px_rgba(0,0,0,0.3)] brightness-90" />
       
-      {stage === 1 ? (
-        <div className="w-full h-full flex flex-col pt-12">
-          <div className="px-5 pb-3 border-b border-gray-100 flex items-center justify-between gap-3 w-full max-w-full overflow-hidden">
-            <div 
-              style={{ 
-                color: primaryColor,
-                fontSize: familyName.length > 12 
-                  ? `${Math.max(0.65, 1.25 - (familyName.length - 12) * 0.035)}rem` 
-                  : '1.25rem',
-                lineHeight: 1.1
-              }} 
-              className="font-bold font-['League_Spartan'] tracking-wide truncate flex-1 min-w-0"
-            >
-              {familyName || 'Our Family'}
-            </div>
-            <div className="w-8 h-8 rounded-full bg-gray-100 shrink-0" />
+      {/* Power Button */}
+      <div className="absolute -right-[12px] top-[125px] w-[2px] h-[65px] bg-[hsl(var(--cta-bg))] rounded-r-[4px] shadow-[1px_0_2px_rgba(0,0,0,0.3)] brightness-90" />
+      {/* Camera Control Button (iPhone 16) */}
+      <div className="absolute -right-[11px] top-[260px] w-[1px] h-[50px] bg-[hsl(var(--cta-bg))] rounded-r-[2px] shadow-[inset_1px_0_2px_rgba(0,0,0,0.5)] brightness-75" />
+
+      {/* Screen Area */}
+      <div className="absolute inset-[6px] rounded-[32px] overflow-hidden bg-white">
+        
+        {/* Dynamic Island (iPhone 16 Layout) */}
+        <div className="absolute top-[10px] left-1/2 -translate-x-1/2 w-[86px] h-[26px] bg-black rounded-full z-[200] shadow-[inset_0_-1px_3px_rgba(255,255,255,0.15),_0_2px_15px_rgba(0,0,0,0.2)] flex items-center justify-between px-2">
+          {/* Face ID Projector */}
+          <div className="w-[12px] h-[12px] rounded-full bg-[#0a0a0a] shadow-[inset_0_0_2px_rgba(0,0,0,1)] flex items-center justify-center overflow-hidden">
+             <div className="w-[5px] h-[5px] bg-indigo-500/20 rounded-full blur-[1px]" />
           </div>
-          
-          <div className="flex-1 bg-[hsl(var(--bg-app))] p-4 flex flex-col gap-4 overflow-hidden">
-            {/* High Fidelity Mock Recipe Cards */}
-            {[
-               { title: 'Smoky Chicken Flautas', time: '35 min' },
-               { title: 'Garlic Butter Salmon', time: '20 min' },
-               { title: 'Creamy Tuscan Pasta', time: '25 min' }
-            ].map((recipe, i) => (
-              <div key={i} className="bg-white p-3 rounded-[16px] shadow-sm border border-black/[0.04] flex gap-3">
-                <div className="w-16 h-16 bg-[hsl(var(--bg-frame))] rounded-xl shrink-0" />
-                <div className="flex flex-col justify-center flex-1">
-                  <span className="font-bold text-[hsl(var(--text-primary))] text-[0.85rem] leading-snug mb-1">{recipe.title}</span>
-                  <span className="text-[0.65rem] text-[hsl(var(--text-secondary))] font-semibold mb-[6px] uppercase tracking-wide">{recipe.time} • Dinner</span>
-                  
-                  <div 
-                    className="self-start text-[0.7rem] font-bold px-[10px] py-[4px] rounded-md transition-colors"
-                    style={{ backgroundColor: `color-mix(in srgb, ${primaryColor} 12%, transparent)`, color: primaryColor }}
-                  >
-                    + Add Side
+          {/* Front Camera Lens */}
+          <div className="w-[12px] h-[12px] rounded-full bg-[#111] shadow-[inset_0_0_2px_rgba(0,0,0,1)] border border-white/5 relative overflow-hidden flex items-center justify-center">
+             <div className="w-[4px] h-[4px] bg-blue-500/30 rounded-full blur-[0.5px]" />
+          </div>
+        </div>
+        
+        {/* iOS Status Bar */}
+        <div className="absolute top-[10px] left-0 right-0 h-[26px] px-[20px] flex justify-between items-center z-[100] pointer-events-none">
+          <span className="text-[10px] font-bold text-zinc-900 tracking-wide">9:41</span>
+          <div className="flex items-center gap-[4px] text-zinc-900 scale-[0.85] origin-right">
+            <svg width="15" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
+              <path d="M1.42 9a16 16 0 0 1 21.16 0"></path>
+              <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
+              <line x1="12" y1="20" x2="12.01" y2="20"></line>
+            </svg>
+            <svg width="22" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="1" y="6" width="18" height="12" rx="2" ry="2"></rect>
+              <line x1="23" y1="13" x2="23" y2="11" strokeWidth="2.5"></line>
+              <rect x="3" y="8" width="12" height="8" rx="1" ry="1" fill="currentColor" stroke="none"></rect>
+            </svg>
+          </div>
+        </div>
+        
+        {stage === 1 ? (
+          <div className="w-full h-full flex flex-col pt-[44px] relative">
+            <div className="px-5 pb-3 border-b border-gray-100 flex items-center justify-between gap-3 w-full max-w-full overflow-hidden">
+              <div 
+                style={{ 
+                  color: primaryColor,
+                  fontSize: familyName.length > 12 
+                    ? `${Math.max(0.65, 1.25 - (familyName.length - 12) * 0.035)}rem` 
+                    : '1.25rem',
+                  lineHeight: 1.1
+                }} 
+                className="font-bold font-['League_Spartan'] tracking-wide truncate flex-1 min-w-0"
+              >
+                {familyName || 'Our Family'}
+              </div>
+              <div className="w-8 h-8 rounded-full bg-gray-100 shrink-0" />
+            </div>
+            
+            <div className="flex-1 bg-[hsl(var(--bg-app))] p-4 flex flex-col gap-4 overflow-hidden relative">
+              {/* High Fidelity Mock Recipe Cards */}
+              {[
+                 { title: 'Smoky Chicken Flautas', time: '35 min' },
+                 { title: 'Garlic Butter Salmon', time: '20 min' },
+                 { title: 'Creamy Tuscan Pasta', time: '25 min' }
+              ].map((recipe, i) => (
+                <div key={i} className="bg-white p-3 rounded-[16px] shadow-sm border border-black/[0.04] flex gap-3">
+                  <div className="w-16 h-16 bg-[hsl(var(--bg-frame))] rounded-xl shrink-0" />
+                  <div className="flex flex-col justify-center flex-1">
+                    <span className="font-bold text-[hsl(var(--text-primary))] text-[0.85rem] leading-snug mb-1">{recipe.title}</span>
+                    <span className="text-[0.65rem] text-[hsl(var(--text-secondary))] font-semibold mb-[6px] uppercase tracking-wide">{recipe.time} • Dinner</span>
+                    
+                    <div 
+                      className="self-start text-[0.7rem] font-bold px-[10px] py-[4px] rounded-md transition-colors"
+                      style={{ backgroundColor: `color-mix(in srgb, ${primaryColor} 12%, transparent)`, color: primaryColor }}
+                    >
+                      + Add Side
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+
+            {/* Mock Bottom Navigation */}
+            <div className="absolute bottom-0 left-0 right-0 h-[64px] bg-white border-t border-zinc-100 flex justify-around items-center px-1 z-50 pb-2">
+              {[
+                { name: 'Hub', icon: Home, active: true },
+                { name: 'Recipes', icon: Book, active: false },
+                { name: 'History', icon: Clock, active: false },
+                { name: 'List', icon: List, active: false }
+              ].map((item, i) => {
+                const Icon = item.icon;
+                return (
+                  <div key={i} className={`flex flex-col items-center justify-center w-full h-full space-y-[2px] ${item.active ? '' : 'text-zinc-400'}`}>
+                    <div 
+                      className="p-1 rounded-full"
+                      style={item.active ? { backgroundColor: `color-mix(in srgb, ${primaryColor} 12%, transparent)`, color: primaryColor } : { color: 'inherit' }}
+                    >
+                      <Icon width={18} height={18} strokeWidth={item.active ? 2 : 1.5} />
+                    </div>
+                    <span 
+                      className="text-[8.5px] font-medium tracking-wide"
+                      style={item.active ? { color: primaryColor } : { color: 'inherit' }}
+                    >{item.name}</span>
+                  </div>
+                )
+              })}
+            </div>
           </div>
-        </div>
-      ) : (
-        <div className="flex flex-col items-center justify-center w-full h-full bg-[hsl(var(--bg-app))] gap-6">
-           <DynamicLogoPreview primaryColor={primaryColor} IconComp={SelectedIconComp} />
-           <span style={{ color: primaryColor, opacity: 0.8 }} className="font-['League_Spartan'] font-bold tracking-wide text-lg">
-              {familyName ? `${familyName.toLowerCase().replace(/[^a-z0-9]/g, '')}` : 'mealhouse'}
-           </span>
-        </div>
-      )}
+        ) : (
+          <div className="w-full h-full relative overflow-hidden bg-[hsl(var(--bg-app))]">
+            <div className="absolute inset-0 bg-white/30 backdrop-blur-[1px]" />
+            
+            <div className="w-full h-full flex flex-col pt-[52px] px-4 relative z-10">
+              {/* Widget Area */}
+              <div className="w-full h-[110px] bg-white/40 backdrop-blur-md rounded-[22px] mb-5 shadow-[0_4px_12px_rgba(0,0,0,0.05)] border border-white/60" />
+
+              {/* App Grid */}
+              <div className="grid grid-cols-4 gap-x-2 gap-y-5 w-full px-1">
+                {/* Row 1 */}
+                <div className="flex flex-col items-center gap-1.5"><div className="w-[46px] h-[46px] bg-white/40 backdrop-blur-md rounded-[12px] shadow-[0_4px_12px_rgba(0,0,0,0.05)] border border-white/60" /></div>
+                <div className="flex flex-col items-center gap-1.5"><div className="w-[46px] h-[46px] bg-white/40 backdrop-blur-md rounded-[12px] shadow-[0_4px_12px_rgba(0,0,0,0.05)] border border-white/60" /></div>
+                <div className="flex flex-col items-center gap-1.5"><div className="w-[46px] h-[46px] bg-white/40 backdrop-blur-md rounded-[12px] shadow-[0_4px_12px_rgba(0,0,0,0.05)] border border-white/60" /></div>
+                <div className="flex flex-col items-center gap-1.5"><div className="w-[46px] h-[46px] bg-white/40 backdrop-blur-md rounded-[12px] shadow-[0_4px_12px_rgba(0,0,0,0.05)] border border-white/60" /></div>
+                
+                {/* Row 2 (The App) */}
+                <div className="flex flex-col items-center gap-1.5"><div className="w-[46px] h-[46px] bg-white/40 backdrop-blur-md rounded-[12px] shadow-[0_4px_12px_rgba(0,0,0,0.05)] border border-white/60" /></div>
+                
+                <div className="flex flex-col items-center gap-1.5 col-span-1">
+                  <div className="w-[46px] h-[46px] relative overflow-visible shadow-[0_4px_12px_rgba(0,0,0,0.05)] rounded-[12px]">
+                     <div className="absolute top-0 left-0 origin-top-left" style={{ transform: 'scale(0.32857)' }}>
+                       <DynamicLogoPreview primaryColor={primaryColor} IconComp={SelectedIconComp} logoType={logoType} logoLetters={logoLetters} />
+                     </div>
+                  </div>
+                  <span className="text-[hsl(var(--text-primary))] text-[9.5px] font-semibold tracking-wide truncate w-[56px] text-center mt-[1px]">
+                    {familyName ? familyName.charAt(0).toUpperCase() + familyName.slice(1) : 'MealHouse'}
+                  </span>
+                </div>
+
+                <div className="flex flex-col items-center gap-1.5"><div className="w-[46px] h-[46px] bg-white/40 backdrop-blur-md rounded-[12px] shadow-[0_4px_12px_rgba(0,0,0,0.05)] border border-white/60" /></div>
+                <div className="flex flex-col items-center gap-1.5"><div className="w-[46px] h-[46px] bg-white/40 backdrop-blur-md rounded-[12px] shadow-[0_4px_12px_rgba(0,0,0,0.05)] border border-white/60" /></div>
+              </div>
+            </div>
+
+            {/* Dock */}
+            <div className="absolute bottom-3 left-3 right-3 h-[72px] bg-white/60 backdrop-blur-xl rounded-[26px] flex items-center justify-between px-3 border border-white/40 shadow-lg z-20">
+              <div className="w-[48px] h-[48px] bg-white/40 backdrop-blur-md rounded-[12px] shadow-[0_4px_12px_rgba(0,0,0,0.05)] border border-white/60" />
+              <div className="w-[48px] h-[48px] bg-white/40 backdrop-blur-md rounded-[12px] shadow-[0_4px_12px_rgba(0,0,0,0.05)] border border-white/60" />
+              <div className="w-[48px] h-[48px] bg-white/40 backdrop-blur-md rounded-[12px] shadow-[0_4px_12px_rgba(0,0,0,0.05)] border border-white/60" />
+              <div className="w-[48px] h-[48px] bg-white/40 backdrop-blur-md rounded-[12px] shadow-[0_4px_12px_rgba(0,0,0,0.05)] border border-white/60" />
+            </div>
+          </div>
+        )}
+        
+        {/* Glass Screen Glare */}
+        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/[0.04] to-white/[0.15] pointer-events-none z-[150]" />
+      </div>
+
+      {/* Screen Bezel / Inner Case Shadow */}
+      <div className="absolute inset-0 rounded-[38px] border-[6px] border-black pointer-events-none z-[200] shadow-[inset_0_0_4px_rgba(255,255,255,0.3)]" />
     </div>
   );
 }
@@ -284,7 +411,7 @@ function FeatureCard({
             width: isMini ? 26 : 36,
             height: isMini ? 26 : 36,
             borderRadius: isMini ? 7 : 10,
-            backgroundColor: feature.id === 'ai' ? 'hsl(var(--accent-h) var(--accent-s) var(--accent-l) / 0.15)' : '#ffffff',
+            backgroundColor: '#ffffff',
             color: 'hsl(var(--accent-h) var(--accent-s) var(--accent-l))',
             opacity: isMini ? 0.6 : 1,
             boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
@@ -401,6 +528,8 @@ export default function StorefrontLayout() {
   const location = useLocation();
   const isOnboarding = location.pathname.includes('/onboarding');
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+  const [isPhoneHovered, setIsPhoneHovered] = useState(false);
+  const [isPhoneExpanded, setIsPhoneExpanded] = useState(false);
 
   useEffect(() => {
     const fn = () => setIsMobile(window.innerWidth < 1024);
@@ -408,11 +537,20 @@ export default function StorefrontLayout() {
     return () => window.removeEventListener('resize', fn);
   }, []);
 
+  useEffect(() => {
+    if (isOnboarding) {
+      setIsPhoneExpanded(false);
+      setIsPhoneHovered(false);
+    }
+  }, [isOnboarding]);
+
   const [mockupState, setMockupState] = useState<MockupState>({
     familyName: '',
     primaryColor: 'hsl(150, 40%, 45%)',
     selectedIconName: 'Home',
-    stage: 1
+    stage: 1,
+    logoType: 'icon',
+    logoLetters: ''
   });
 
   return (
@@ -438,13 +576,13 @@ export default function StorefrontLayout() {
           transition={{ duration: 0.18 }}
           className="flex items-center justify-center gap-2 px-3 md:px-6 py-2 md:py-2.5 bg-white/40 backdrop-blur-md border-2 border-[hsl(var(--accent-h)_30%_80%)] rounded-full text-[hsl(var(--text-primary))] text-[1.05rem] font-bold font-['League_Spartan'] cursor-pointer tracking-wide"
         >
-          <span className="md:hidden flex items-center justify-center">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <span className="flex items-center justify-center">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
               <circle cx="12" cy="7" r="4"></circle>
             </svg>
           </span>
-          <span className="hidden md:inline">Sign In / Sign Up</span>
+          <span className="hidden md:inline">Sign In</span>
         </motion.button>
       </header>
 
@@ -475,22 +613,53 @@ export default function StorefrontLayout() {
 
         {/* Right Side (Static Features) */}
         <div
-          className="static-features-container relative flex flex-col lg:block items-center justify-center shrink-0 w-full max-w-[400px] lg:max-w-none gap-8 lg:gap-0 mt-8 lg:mt-0"
-          style={{ width: isMobile ? '100%' : (isOnboarding ? 'clamp(280px, 28vw, 360px)' : 'clamp(320px, 45vw, 600px)'), transition: 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)' }}
+          className="static-features-container relative flex flex-col lg:flex lg:items-center lg:justify-center shrink-0 w-full max-w-[400px] lg:max-w-none gap-8 lg:gap-0 mt-8 lg:mt-0"
+          style={{ width: isMobile ? '100%' : (isOnboarding ? 'clamp(280px, 28vw, 360px)' : 'clamp(380px, 45vw, 550px)'), transition: 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)' }}
         >
           <motion.div
-             className="relative lg:absolute z-10 flex justify-center w-full"
+             className={`relative flex justify-center shrink-0 ${!isOnboarding && !isMobile ? 'cursor-pointer' : ''}`}
+             onHoverStart={() => !isMobile && !isOnboarding && setIsPhoneHovered(true)}
+             onHoverEnd={() => !isMobile && !isOnboarding && setIsPhoneHovered(false)}
+             onClick={() => !isMobile && !isOnboarding && setIsPhoneExpanded(!isPhoneExpanded)}
              animate={{ 
-               scale: isMobile ? 1 : (isOnboarding ? 1.1 : 1.05),
-               x: isMobile ? 0 : (isOnboarding ? '0%' : '-32%'),
+               scale: isMobile ? 1 : (isOnboarding ? 1 : (isPhoneExpanded ? 1.15 : 1.05)),
+               x: isMobile ? 0 : (isOnboarding ? '0%' : (isPhoneExpanded ? '20%' : '-30%')),
                y: 0
              }}
              transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
              style={{ 
                height: 'min(500px, calc(100dvh - 160px))', 
                aspectRatio: '9 / 17',
+               zIndex: isPhoneExpanded ? 30 : 10,
              }}
           >
+             {/* Glow Effect behind the phone */}
+             {!isOnboarding && !isMobile && (
+               <motion.div
+                 className="absolute inset-[-4px] rounded-[36px] pointer-events-none z-[-1]"
+                 animate={{
+                   opacity: isPhoneExpanded ? 0 : 1,
+                   boxShadow: isPhoneHovered 
+                     ? '0 0 60px hsla(150, 50%, 22%, 0.65)'
+                     : [
+                         '0 0 20px hsla(150, 50%, 22%, 0.2)',
+                         '0 0 45px hsla(150, 50%, 22%, 0.55)',
+                         '0 0 20px hsla(150, 50%, 22%, 0.2)',
+                         '0 0 45px hsla(150, 50%, 22%, 0.55)',
+                         '0 0 20px hsla(150, 50%, 22%, 0.2)',
+                         '0 0 45px hsla(150, 50%, 22%, 0.55)',
+                         '0 0 20px hsla(150, 50%, 22%, 0.2)',
+                         '0 0 20px hsla(150, 50%, 22%, 0.2)',
+                       ]
+                 }}
+                 transition={isPhoneHovered ? { duration: 0.3 } : {
+                   duration: 8,
+                   times: [0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 1],
+                   repeat: Infinity,
+                   ease: "easeInOut"
+                 }}
+               />
+             )}
              <PhoneMockup mockupState={mockupState} />
           </motion.div>
 
@@ -498,7 +667,7 @@ export default function StorefrontLayout() {
             {!isOnboarding && (
               <motion.div
                 key="features"
-                className="relative lg:absolute z-20 w-full lg:w-[56%] lg:right-[-12px]"
+                className="relative lg:absolute z-20 w-full lg:w-[60%] lg:right-0"
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 50, transition: { duration: 0.3 } }}

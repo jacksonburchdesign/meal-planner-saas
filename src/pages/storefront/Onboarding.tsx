@@ -57,6 +57,8 @@ export default function Onboarding() {
   const [authorizedEmails, setAuthorizedEmails] = useState<string[]>([]);
   const [emailInput, setEmailInput] = useState('');
   const [selectedIconName, setSelectedIconName] = useState('Home');
+  const [logoType, setLogoType] = useState<'icon'|'letters'>('icon');
+  const [logoLetters, setLogoLetters] = useState('');
   const [loading, setLoading] = useState(false);
   const [isSlugAvailable, setIsSlugAvailable] = useState<boolean | null>(null);
   const [checkingSlug, setCheckingSlug] = useState(false);
@@ -66,9 +68,9 @@ export default function Onboarding() {
   
   useEffect(() => {
     if (setMockupState) {
-      setMockupState({ familyName, primaryColor, selectedIconName, stage });
+      setMockupState({ familyName, primaryColor, selectedIconName, stage, logoType, logoLetters });
     }
-  }, [familyName, primaryColor, selectedIconName, stage, setMockupState]);
+  }, [familyName, primaryColor, selectedIconName, stage, logoType, logoLetters, setMockupState]);
 
 
   useEffect(() => {
@@ -169,7 +171,14 @@ export default function Onboarding() {
       // 2. Upload combined App Logo to Firebase Storage
       let iconUrl = '';
       try {
-        iconUrl = await generatePngLogoUrl(familyId, <SelectedIconComp width="100%" height="100%" color={primaryColor} strokeWidth={1.5} />, primaryColor);
+        const iconNode = logoType === 'letters' ? (
+          <svg width="100%" height="100%" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <text x="50%" y="54%" dominantBaseline="middle" textAnchor="middle" fill={primaryColor} fontSize="48px" fontWeight="800" fontFamily="League Spartan, system-ui, sans-serif" letterSpacing="-0.02em">{logoLetters}</text>
+          </svg>
+        ) : (
+          <SelectedIconComp width="100%" height="100%" color={primaryColor} strokeWidth={1.5} />
+        );
+        iconUrl = await generatePngLogoUrl(familyId, iconNode, primaryColor);
       } catch (err) {
         console.warn("Failed to generate custom icon png, falling back.", err);
       }
@@ -553,17 +562,17 @@ export default function Onboarding() {
               <div>
                 <label className="flex items-center gap-1.5" style={{ fontSize: '1.05rem', fontWeight: 700, color: 'hsl(var(--text-primary))', marginBottom: '8px', paddingLeft: '4px', fontFamily: '"League Spartan", system-ui, sans-serif', letterSpacing: '-0.01em' }}>
                   Authorized Member Emails
-                  <div className="relative group flex items-center justify-center translate-y-[-1.5px]">
-                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-400 cursor-help hover:text-[hsl(var(--primary))] transition-colors">
+                  <button type="button" tabIndex={0} className="relative group flex items-center justify-center translate-y-[-1.5px] outline-none border-none bg-transparent p-0 m-0">
+                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-400 cursor-help group-hover:text-[hsl(var(--primary))] group-focus:text-[hsl(var(--primary))] transition-colors">
                         <circle cx="12" cy="12" r="10"></circle>
                         <path d="M12 16v-4"></path>
                         <path d="M12 8h.01"></path>
                      </svg>
-                     <div className="pointer-events-none absolute bottom-[calc(100%+8px)] left-1/2 -translate-x-1/2 w-48 opacity-0 group-hover:opacity-100 transition-all bg-zinc-800 text-white text-[12px] font-medium p-3 rounded-xl shadow-xl z-50 text-center leading-snug font-['Inter'] tracking-normal">
+                     <div className="pointer-events-none absolute bottom-[calc(100%+8px)] left-1/2 -translate-x-1/2 w-48 opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-all bg-zinc-800 text-white text-[12px] font-medium p-3 rounded-xl shadow-xl z-50 text-center leading-snug font-['Inter'] tracking-normal">
                         Only these email addresses will be permitted to access your family's app vault.
                         <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-[1px] border-[6px] border-transparent border-t-zinc-800" />
                      </div>
-                  </div>
+                  </button>
                 </label>
                 <div style={{ ...glassInputStyle, padding: '12px', display: 'flex', flexDirection: 'column', gap: 12, cursor: 'text' }} onClick={() => document.getElementById('email-input')?.focus()}>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
@@ -590,6 +599,23 @@ export default function Onboarding() {
                 <label style={{ display: 'block', fontSize: '1.05rem', fontWeight: 700, color: 'hsl(var(--text-secondary))', marginBottom: '8px', paddingLeft: '4px', fontFamily: '"League Spartan", system-ui, sans-serif', letterSpacing: '-0.01em' }}>
                   Design App Icon
                 </label>
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setLogoType('icon')}
+                    style={{ flex: 1, padding: '8px', borderRadius: '10px', fontSize: '0.95rem', fontWeight: 700, cursor: 'pointer', border: '1px solid', borderColor: logoType === 'icon' ? primaryColor : 'rgba(0,0,0,0.05)', backgroundColor: logoType === 'icon' ? `${primaryColor}20` : 'white', color: logoType === 'icon' ? primaryColor : 'hsl(var(--text-secondary))', transition: 'all 0.2s' }}
+                  >
+                    Icon
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setLogoType('letters')}
+                    style={{ flex: 1, padding: '8px', borderRadius: '10px', fontSize: '0.95rem', fontWeight: 700, cursor: 'pointer', border: '1px solid', borderColor: logoType === 'letters' ? primaryColor : 'rgba(0,0,0,0.05)', backgroundColor: logoType === 'letters' ? `${primaryColor}20` : 'white', color: logoType === 'letters' ? primaryColor : 'hsl(var(--text-secondary))', transition: 'all 0.2s' }}
+                  >
+                    Letters
+                  </button>
+                </div>
+                
                 <div style={{ 
                   display: 'flex', 
                   alignItems: 'center', 
@@ -600,28 +626,41 @@ export default function Onboarding() {
                   backgroundColor: 'white',
                   boxShadow: '0 8px 30px rgba(0,0,0,0.04), 0 0 0 1px rgba(255,255,255,0.6)',
                 }}>
-                  {/* Grid */}
-                  <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 8, maxHeight: 110, overflowY: 'auto', paddingRight: 4 }}>
-                    {ICON_OPTIONS.map((opt) => (
-                      <div 
-                        key={opt.name} 
-                        onClick={() => setSelectedIconName(opt.name)}
-                        style={{
-                          aspectRatio: '1',
-                          borderRadius: 8,
-                          backgroundColor: selectedIconName === opt.name ? primaryColor : 'rgba(255,255,255,0.4)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          cursor: 'pointer',
-                          color: selectedIconName === opt.name ? '#ffffff' : 'hsl(var(--text-primary))',
-                          transition: 'all 0.15s'
-                        }}
-                      >
-                        <opt.icon width={20} height={20} strokeWidth={2} />
-                      </div>
-                    ))}
-                  </div>
+                  {logoType === 'icon' ? (
+                    <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 8, maxHeight: 110, overflowY: 'auto', paddingRight: 4 }}>
+                      {ICON_OPTIONS.map((opt) => (
+                        <div 
+                          key={opt.name} 
+                          onClick={() => setSelectedIconName(opt.name)}
+                          style={{
+                            aspectRatio: '1',
+                            borderRadius: 8,
+                            backgroundColor: selectedIconName === opt.name ? primaryColor : 'rgba(255,255,255,0.4)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            color: selectedIconName === opt.name ? '#ffffff' : 'hsl(var(--text-primary))',
+                            transition: 'all 0.15s'
+                          }}
+                        >
+                          <opt.icon width={20} height={20} strokeWidth={2} />
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                      <input
+                        type="text"
+                        maxLength={2}
+                        placeholder="Ex: MH"
+                        value={logoLetters}
+                        onChange={(e) => setLogoLetters(e.target.value.toUpperCase())}
+                        style={{ ...glassInputStyle, width: '100px', textAlign: 'center', fontSize: '1.4rem', fontWeight: 800, padding: '12px' }}
+                      />
+                      <span style={{ fontSize: '0.8rem', color: 'hsl(var(--text-secondary))', marginTop: '8px' }}>Up to 2 letters</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -662,6 +701,32 @@ export default function Onboarding() {
                       Pay with Stripe & Launch
                     </>
                   )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStage(1)}
+                  disabled={loading}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    borderRadius: '100px',
+                    border: 'none',
+                    backgroundColor: 'transparent',
+                    color: 'hsl(var(--text-secondary))',
+                    fontSize: '1.05rem',
+                    fontWeight: 700,
+                    fontFamily: '"Inter", system-ui, sans-serif',
+                    cursor: loading ? 'not-allowed' : 'pointer',
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!loading) (e.currentTarget as HTMLButtonElement).style.color = 'hsl(var(--text-primary))';
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!loading) (e.currentTarget as HTMLButtonElement).style.color = 'hsl(var(--text-secondary))';
+                  }}
+                >
+                  ← Back to Customization
                 </button>
                 <div style={{ display: 'flex', justifyContent: 'center', gap: 16 }}>
                   <span style={{ fontSize: '0.85rem', color: 'hsl(var(--text-secondary))', fontWeight: 600 }}>Secured by Stripe</span>
