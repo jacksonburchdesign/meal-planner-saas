@@ -512,17 +512,17 @@ export default function Onboarding() {
                 <label style={{ display: 'block', fontSize: '1.05rem', fontWeight: 700, color: 'hsl(var(--text-secondary))', marginBottom: '8px', paddingLeft: '4px', fontFamily: '"League Spartan", system-ui, sans-serif', letterSpacing: '-0.01em' }}>
                   App Accent Color
                 </label>
-                <div onClick={() => document.getElementById('primary-color-input')?.click()} style={{ ...glassInputStyle, padding: '12px 18px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer' }}>
+                <div style={{ ...glassInputStyle, padding: '12px 18px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', position: 'relative' }}>
                   <input
                     id="primary-color-input"
                     type="color"
                     required
                     value={primaryColor.startsWith('hsl') ? '#45a065' : primaryColor}
                     onChange={(e) => setPrimaryColor(e.target.value)}
-                    style={{ opacity: 0, position: 'absolute', pointerEvents: 'none' }}
+                    style={{ opacity: 0, position: 'absolute', inset: 0, width: '100%', height: '100%', cursor: 'pointer', zIndex: 10 }}
                   />
-                  <div style={{ width: '40px', height: '40px', borderRadius: '10px', backgroundColor: primaryColor, boxShadow: '0 8px 30px rgba(0,0,0,0.04), 0 0 0 2px rgba(255,255,255,0.8)' }} />
-                  <span style={{ fontSize: '1.1rem', fontWeight: 700, color: 'hsl(var(--text-primary))', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ width: '40px', height: '40px', borderRadius: '10px', backgroundColor: primaryColor, boxShadow: '0 8px 30px rgba(0,0,0,0.04), 0 0 0 2px rgba(255,255,255,0.8)', position: 'relative', zIndex: 5 }} />
+                  <span style={{ fontSize: '1.1rem', fontWeight: 700, color: 'hsl(var(--text-primary))', display: 'flex', alignItems: 'center', gap: 8, position: 'relative', zIndex: 5 }}>
                     <Palette width={22} height={22} color="hsl(var(--text-secondary))" strokeWidth={2.5} />
                     Theme Accent Color
                   </span>

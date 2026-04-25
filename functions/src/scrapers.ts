@@ -31,10 +31,30 @@ export async function extractPinterestBoardLinks(boardUrl: string): Promise<stri
     const res = await fetch(boardUrl);
     const html = await res.text();
 
-    // 1. Extract all URLs from the raw HTML payload (Pinterest dynamically hydrates strings)
-    const rawUrls = html.match(/https?:\/\/[^\"]+/g) || [];
+    // 1. Try to parse the modern __PWS_INITIAL_PROPS__ JSON payload
+    let rawUrls: string[] = [];
+    try {
+      const match = html.match(/<script id="__PWS_INITIAL_PROPS__" type="application\/json">([\s\S]*?)<\/script>/);
+      if (match && match[1]) {
+        const data = JSON.parse(match[1]);
+        const pins = data.initialReduxState?.pins || {};
+        for (const key of Object.keys(pins)) {
+          if (pins[key]?.link) {
+            rawUrls.push(pins[key].link);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("Failed to parse __PWS_INITIAL_PROPS__, falling back to regex.");
+    }
 
-    // 2. Filter out internal domains, assets, and standard tracking origins
+    // 2. Fallback regex if JSON parsing fails (handles JSON escaped slashes and quotes)
+    if (rawUrls.length === 0) {
+      const regexUrls = html.match(/https?:\\?\/\\?\/[^\s"'><\\]+/g) || [];
+      rawUrls = regexUrls.map(u => u.replace(/\\/g, ''));
+    }
+
+    // 3. Filter out internal domains, assets, and standard tracking origins
     const uniqueRaw = Array.from(new Set(rawUrls)).filter((u: string) => {
        const L = u.toLowerCase();
        return !L.includes('pinterest.') &&
@@ -47,8 +67,8 @@ export async function extractPinterestBoardLinks(boardUrl: string): Promise<stri
               !L.includes('github.com');
     });
 
-    // 3. Clean up any escaped JSON entities from the Regex match
-    const externalLinks = uniqueRaw.map((u: string) => u.replace(/\\u0026/g, '&'));
+    // 4. Clean up any escaped JSON entities from the Regex match
+    const externalLinks = uniqueRaw.map((u: string) => u.replace(/\\u0026/g, '&').replace(/u0026/g, '&'));
 
     return externalLinks;
   } catch (error) {
