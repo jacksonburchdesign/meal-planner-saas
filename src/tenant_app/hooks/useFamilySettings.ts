@@ -21,6 +21,7 @@ export interface FamilySettings {
     healthyMealsPerWeek: number;
     indulgentMealsPerWeek: number;
   };
+  customTags?: string[];
 }
 
 const DEFAULT_SETTINGS: FamilySettings = {
@@ -28,6 +29,7 @@ const DEFAULT_SETTINGS: FamilySettings = {
   themeColor: '#0097b2', // Using hex so the color-picker does not warn during initial loading frame
   iconUrl: '/meal-planner-logo.svg',
   iconName: 'Home',
+  customTags: [],
   demographics: { adults: 2, children: 0 },
   mealPreferences: { healthyMealsPerWeek: 5, indulgentMealsPerWeek: 2 }
 };
@@ -102,8 +104,51 @@ export function useFamilySettings() {
   }, [familySettings]);
 
   useEffect(() => {
-    applyThemeVariables(settings.themeColor);
-  }, [settings.themeColor]);
+    if (settings) {
+      applyThemeVariables(settings.themeColor);
+      
+      // Update custom PWA icons for "Add to Home Screen" dynamically based on tenant icon
+      if (settings.iconUrl) {
+        // Update standard favicons
+        let iconLink = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
+        if (!iconLink) {
+          iconLink = document.createElement('link');
+          iconLink.rel = 'icon';
+          document.head.appendChild(iconLink);
+        }
+        iconLink.href = settings.iconUrl;
+
+        let appleIconLink = document.querySelector("link[rel~='apple-touch-icon']") as HTMLLinkElement;
+        if (!appleIconLink) {
+          appleIconLink = document.createElement('link');
+          appleIconLink.rel = 'apple-touch-icon';
+          document.head.appendChild(appleIconLink);
+        }
+        appleIconLink.href = settings.iconUrl;
+
+        // Dynamically inject a manifest with the tenant's app name and icon
+        let manifestLink = document.querySelector("link[rel~='manifest']") as HTMLLinkElement;
+        if (!manifestLink) {
+          manifestLink = document.createElement('link');
+          manifestLink.rel = 'manifest';
+          document.head.appendChild(manifestLink);
+        }
+        const dynamicManifest = {
+          name: settings.familyName || 'MealHouse',
+          short_name: settings.familyName || 'MealHouse',
+          display: 'standalone',
+          background_color: '#ffffff',
+          theme_color: settings.themeColor || '#0097b2',
+          icons: [
+            { src: settings.iconUrl, sizes: '192x192', type: 'image/png' },
+            { src: settings.iconUrl, sizes: '512x512', type: 'image/png' }
+          ]
+        };
+        const blob = new Blob([JSON.stringify(dynamicManifest)], { type: 'application/json' });
+        manifestLink.href = URL.createObjectURL(blob);
+      }
+    }
+  }, [settings]);
 
   const updateSettings = async (updates: Partial<FamilySettings>) => {
     if (updates.themeColor) {

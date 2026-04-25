@@ -64,7 +64,7 @@ export function ImportPinterestBoard() {
               </p>
               <div className="bg-amber-50 border border-amber-200/60 rounded-xl p-3">
                 <p className="text-[13px] text-amber-800 font-medium leading-snug">
-                  <strong className="font-bold">Note:</strong> To ensure fast processing, imports are limited to the first <strong className="font-bold">50 recipes</strong> per board. We recommend creating multiple smaller boards if you have hundreds of pins!
+                  <strong className="font-bold">Note:</strong> To ensure fast processing, imports are limited to the first <strong className="font-bold">150 recipes</strong> per board. We recommend creating multiple smaller boards if you have hundreds of pins!
                 </p>
               </div>
             </div>

@@ -6,6 +6,9 @@ import { ImportPinterestBoard } from '../components/recipe/ImportPinterestBoard'
 import { ManualRecipeInput } from '../components/recipe/ManualRecipeInput';
 import { useNavigate } from 'react-router-dom';
 import { useState, useMemo, useEffect } from 'react';
+import { useTenantData } from '../../context/TenantDataContext';
+import { doc, updateDoc } from 'firebase/firestore';
+import { db } from '../services/firebase/config';
 import { motion } from 'framer-motion';
 import type { Variants } from 'framer-motion';
 import { Clock } from 'iconoir-react';
@@ -59,10 +62,41 @@ const itemV: Variants = {
 };
 
 export function AllRecipes() {
-  const { recipes, loading } = useRecipes();
+  const { recipes, loading, familySettings, familyId } = useTenantData();
   const navigate = useNavigate();
   const [activeFilters, setActiveFilters] = useState<string[]>(['All']);
   const [displayLimit, setDisplayLimit] = useState(20);
+
+  // Dynamically calculate tags: standard categories + familySettings.customTags + any tags already on recipes
+  const availableTags = useMemo(() => {
+    const standard = ['All', 'Healthy', 'Indulgent', 'Entrées', 'Sides', 'Sauces', 'Snacks', 'Desserts', 'Smoothies', 'Dips'];
+    const custom = familySettings?.customTags || [];
+    const recipeTags = recipes.flatMap(r => r.tags || []);
+    // merge and deduplicate
+    const unique = Array.from(new Set([...standard, ...custom, ...recipeTags]));
+    return unique;
+  }, [familySettings?.customTags, recipes]);
+
+  const handleCreateGlobalTag = async () => {
+    if (!familyId) return;
+    const tag = window.prompt("Enter a new recipe tag (e.g. Keto, BBQ):");
+    if (!tag || !tag.trim()) return;
+    
+    const newTag = tag.trim();
+    if (availableTags.map(t => t.toLowerCase()).includes(newTag.toLowerCase())) {
+       return; // already exists
+    }
+
+    try {
+       const updatedTags = [...(familySettings?.customTags || []), newTag];
+       await updateDoc(doc(db, 'families', familyId), { customTags: updatedTags });
+       // Auto-select the newly created tag
+       setActiveFilters(prev => prev.includes('All') ? [newTag] : [...prev, newTag]);
+    } catch(err) {
+       console.error("Failed to add global tag:", err);
+       alert("Failed to add tag. Please try again.");
+    }
+  };
 
   // Reset limit when filters change
   useEffect(() => {
@@ -99,11 +133,15 @@ export function AllRecipes() {
          );
       }
 
-      // Handle "Category" domain logic (OR within domain)
+      // Handle "Category" & "Custom Tags" domain logic (OR within domain)
       const categoryFilters = activeFilters.filter(f => f !== 'Healthy' && f !== 'Indulgent');
       let passesCategory = true;
       if (categoryFilters.length > 0) {
-         passesCategory = categoryFilters.some(cf => r.category.toLowerCase() === cf.toLowerCase());
+         passesCategory = categoryFilters.some(cf => {
+           const isBaseCategory = r.category.toLowerCase() === cf.toLowerCase();
+           const isCustomTag = r.tags?.some(t => t.toLowerCase() === cf.toLowerCase()) || false;
+           return isBaseCategory || isCustomTag;
+         });
       }
 
       // Recipe must pass BOTH domain checks (AND across domains)
@@ -132,7 +170,7 @@ export function AllRecipes() {
 
       {/* Horizontal Tag Cloud */}
       <div className="relative z-10 mb-4 -mx-4 px-4 overflow-x-auto custom-scrollbar flex items-center gap-2 pb-2 pl-4 pr-4">
-        {['All', 'Healthy', 'Indulgent', 'Entrées', 'Sides', 'Sauces', 'Snacks', 'Desserts', 'Smoothies', 'Dips'].map(tag => (
+        {availableTags.map(tag => (
           <button
             key={tag}
             onClick={() => toggleFilter(tag)}
@@ -141,6 +179,12 @@ export function AllRecipes() {
             {tag}
           </button>
         ))}
+        <button
+          onClick={handleCreateGlobalTag}
+          className="flex-none px-3 py-1.5 rounded-full text-[13px] font-bold tracking-wide transition-all active:scale-95 bg-primary-50 text-primary-600 border border-primary-200 border-dashed hover:border-primary-400"
+        >
+          + Add
+        </button>
       </div>
 
       <div className="relative z-10 animate-in slide-in-from-bottom-2 fade-in duration-300">
@@ -175,7 +219,7 @@ export function AllRecipes() {
                           {recipe.category}
                        </span>
                        {recipe.imageUrl ? (
-                          <img src={recipe.imageUrl} alt={recipe.title} className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out" />
+                          <img src={recipe.imageUrl} alt={recipe.title} loading="lazy" decoding="async" className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out" />
                        ) : (
                           <div className="w-full h-full flex flex-col items-center justify-center p-4 text-center transform group-hover:scale-105 transition-transform duration-700 ease-out" style={getGradientProps(recipe.title)}>
                              <h4 className="text-xl font-bold text-white/90 shadow-black/10 drop-shadow-md leading-tight mix-blend-overlay line-clamp-4">{recipe.title}</h4>
@@ -218,7 +262,7 @@ export function AllRecipes() {
                             {recipe.category}
                          </span>
                          {recipe.imageUrl ? (
-                            <img src={recipe.imageUrl} alt={recipe.title} className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out" />
+                            <img src={recipe.imageUrl} alt={recipe.title} loading="lazy" decoding="async" className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out" />
                          ) : (
                             <div className="w-full h-full flex flex-col items-center justify-center p-4 text-center transform group-hover:scale-105 transition-transform duration-700 ease-out" style={getGradientProps(recipe.title)}>
                                <h4 className="text-xl font-bold text-white/90 shadow-black/10 drop-shadow-md leading-tight mix-blend-overlay line-clamp-4">{recipe.title}</h4>
@@ -254,7 +298,7 @@ export function AllRecipes() {
                             {recipe.category}
                          </span>
                          {recipe.imageUrl ? (
-                            <img src={recipe.imageUrl} alt={recipe.title} className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out" />
+                            <img src={recipe.imageUrl} alt={recipe.title} loading="lazy" decoding="async" className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out" />
                          ) : (
                             <div className="w-full h-full flex flex-col items-center justify-center p-4 text-center transform group-hover:scale-105 transition-transform duration-700 ease-out" style={getGradientProps(recipe.title)}>
                                <h4 className="text-xl font-bold text-white/90 shadow-black/10 drop-shadow-md leading-tight mix-blend-overlay line-clamp-4">{recipe.title}</h4>

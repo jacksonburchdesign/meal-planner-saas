@@ -1,5 +1,4 @@
 import { GoogleGenAI } from "@google/genai";
-import * as functions from "firebase-functions";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 

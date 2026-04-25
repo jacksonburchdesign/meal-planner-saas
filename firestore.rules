@@ -14,8 +14,9 @@ service cloud.firestore {
 
     // users collection
     match /users/{userId} {
-      // User can only read and write their own user document
-      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+      allow read: if isAuthenticated() && (request.auth.uid == userId || resource.data.familyId == getUserFamilyId());
+      allow update, delete: if isAuthenticated() && (request.auth.uid == userId || resource.data.familyId == getUserFamilyId());
+      allow create: if isAuthenticated() && request.auth.uid == userId;
     }
 
     // families collection

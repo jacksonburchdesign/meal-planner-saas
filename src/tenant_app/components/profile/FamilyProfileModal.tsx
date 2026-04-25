@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { collection, query, where, getDocs, deleteDoc, doc } from 'firebase/firestore';
+import { db } from '../../services/firebase/config';
 import { 
   Xmark, 
   CreditCard,
@@ -22,6 +24,9 @@ export function FamilyProfileModal({ onClose }: { onClose: () => void }) {
   const [children, setChildren] = useState(settings.demographics?.children || 0);
   const [localEmails, setLocalEmails] = useState<string[]>(settings.authorizedEmails || []);
   const [emailInput, setEmailInput] = useState('');
+  
+  const [activeUsers, setActiveUsers] = useState<{ uid: string; email: string }[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState(true);
 
   const [saving, setSaving] = useState(false);
   const [demoSaving, setDemoSaving] = useState(false);
@@ -37,6 +42,24 @@ export function FamilyProfileModal({ onClose }: { onClose: () => void }) {
     setChildren(settings.demographics?.children || 0);
     setLocalEmails(settings.authorizedEmails || []);
   }, [settings]);
+
+  // Fetch active signed-up users for this family
+  useEffect(() => {
+    if (!familyId) return;
+    const fetchUsers = async () => {
+      try {
+        const q = query(collection(db, 'users'), where('familyId', '==', familyId));
+        const snapshot = await getDocs(q);
+        const users = snapshot.docs.map(d => ({ uid: d.id, email: d.data().email }));
+        setActiveUsers(users);
+      } catch (err) {
+        console.error("Failed to fetch active users:", err);
+      } finally {
+        setLoadingUsers(false);
+      }
+    };
+    fetchUsers();
+  }, [familyId]);
 
   const handleSaveName = async () => {
     if (localName.trim() === '' || localName === settings.familyName) return;
@@ -68,6 +91,22 @@ export function FamilyProfileModal({ onClose }: { onClose: () => void }) {
 
   const removeEmail = (email: string) => {
     setLocalEmails(localEmails.filter(e => e !== email));
+  };
+
+  const handleRemoveActiveUser = async (uid: string, email: string) => {
+    if (!window.confirm(`Are you sure you want to completely remove ${email} from your family vault? This instantly revokes their access.`)) return;
+    
+    try {
+      await deleteDoc(doc(db, 'users', uid));
+      setActiveUsers(prev => prev.filter(u => u.uid !== uid));
+      
+      const updatedEmails = localEmails.filter(e => e !== email);
+      setLocalEmails(updatedEmails);
+      await updateSettings({ authorizedEmails: updatedEmails });
+    } catch (err) {
+      console.error("Failed to remove active user:", err);
+      alert("Failed to remove user. Ensure you have permission.");
+    }
   };
 
   const handleSaveEmails = async () => {
@@ -245,26 +284,54 @@ export function FamilyProfileModal({ onClose }: { onClose: () => void }) {
                  Authorized Members
               </label>
               <p className="text-[13px] text-zinc-500 font-medium leading-relaxed">Only these specific email addresses will be permitted to access your family's app vault.</p>
-              <div className="bg-white/50 backdrop-blur-sm p-3 rounded-2xl border border-zinc-200 flex flex-col gap-3">
-                  <div className="flex flex-wrap gap-2">
-                     {localEmails.map(email => (
-                       <div key={email} className="flex items-center gap-1.5 bg-white shadow-sm px-3 py-1.5 rounded-full text-[12px] font-semibold text-zinc-700 border border-zinc-100">
-                         {email}
-                         <Xmark width={12} height={12} strokeWidth={3} className="cursor-pointer text-zinc-400 hover:text-rose-500 transition-colors" onClick={() => removeEmail(email)} />
-                       </div>
-                     ))}
-                     <input
-                       value={emailInput}
-                       onChange={e => setEmailInput(e.target.value)}
-                       onKeyDown={handleAddEmail}
-                       placeholder={localEmails.length === 0 ? "Enter emails separated by commas" : "Add another..."}
-                       className="border-none bg-transparent outline-none text-[13px] font-medium text-zinc-700 flex-1 min-w-[150px] placeholder:text-zinc-400"
-                     />
+              
+              <div className="bg-white/50 backdrop-blur-sm p-3 rounded-2xl border border-zinc-200 flex flex-col gap-4">
+                  {/* Active Members */}
+                  <div>
+                    <h4 className="text-[11px] font-bold text-zinc-400 uppercase mb-2">Active Members</h4>
+                    {loadingUsers ? (
+                      <p className="text-[13px] text-zinc-400">Loading active members...</p>
+                    ) : (
+                      <div className="flex flex-col gap-1.5">
+                        {activeUsers.map(u => (
+                          <div key={u.uid} className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 bg-white shadow-sm px-3 py-2 rounded-xl border border-emerald-100">
+                            <span className="text-[13px] font-semibold text-zinc-700 truncate">{u.email}</span>
+                            <div className="flex items-center gap-2">
+                               <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200/50">Active</span>
+                               <button onClick={() => handleRemoveActiveUser(u.uid, u.email)} className="text-[11px] font-bold text-rose-500 hover:text-rose-600 bg-rose-50 hover:bg-rose-100 px-2 py-1 rounded transition-colors">
+                                  Remove
+                               </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
+
+                  {/* Pending Invites & Adding */}
+                  <div className="pt-2 border-t border-zinc-100">
+                    <h4 className="text-[11px] font-bold text-zinc-400 uppercase mb-2">Pending Invites</h4>
+                    <div className="flex flex-wrap gap-2">
+                       {localEmails.filter(email => !activeUsers.some(u => u.email === email)).map(email => (
+                         <div key={email} className="flex items-center gap-1.5 bg-white shadow-sm px-3 py-1.5 rounded-full text-[12px] font-semibold text-zinc-600 border border-zinc-100">
+                           {email}
+                           <Xmark width={12} height={12} strokeWidth={3} className="cursor-pointer text-zinc-400 hover:text-rose-500 transition-colors" onClick={() => removeEmail(email)} />
+                         </div>
+                       ))}
+                       <input
+                         value={emailInput}
+                         onChange={e => setEmailInput(e.target.value)}
+                         onKeyDown={handleAddEmail}
+                         placeholder="Add emails separated by commas..."
+                         className="border-none bg-transparent outline-none text-[13px] font-medium text-zinc-700 flex-1 min-w-[200px] placeholder:text-zinc-400"
+                       />
+                    </div>
+                  </div>
+
                   {diffEmails && (
                      <div className="flex justify-end pt-1">
                         <Button onClick={handleSaveEmails} disabled={emailsSaving} className="px-5 shadow-sm text-[13px] h-8 bg-zinc-800 hover:bg-zinc-900">
-                          {emailsSaving ? 'Saving...' : 'Save Member List'}
+                          {emailsSaving ? 'Saving...' : 'Save Invites'}
                         </Button>
                      </div>
                   )}

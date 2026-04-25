@@ -14,7 +14,7 @@ export function Navbar() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 w-full bg-white border-t border-zinc-200 pb-[env(safe-area-inset-bottom)] z-50 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+    <nav className="fixed bottom-0 left-0 w-full bg-white border-t border-zinc-200 pb-[calc(env(safe-area-inset-bottom)+1.25rem)] z-50 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
       <div className="flex justify-around items-center h-16 max-w-md mx-auto">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path || 

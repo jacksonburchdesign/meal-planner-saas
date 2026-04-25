@@ -100,6 +100,7 @@ export function ManualRecipeInput() {
         imageUrl: imageUrl.trim() || null,
         ingredients: parsedIngredients,
         instructions: filteredInstructions,
+        tags: [],
         source: 'manual',
         familyId,
         createdAt: Date.now(),

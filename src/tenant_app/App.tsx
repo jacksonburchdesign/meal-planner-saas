@@ -1,5 +1,9 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
+import { doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
+import { db } from './services/firebase/config';
+import { useTheme } from '../context/ThemeContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { Home } from './pages/Home';
 import { AllRecipes } from './pages/AllRecipes';
@@ -19,10 +23,57 @@ function AppThemeWrapper({ children }: { children: ReactNode }) {
 }
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
-  const { currentUser, loading } = useAuth();
+  const { currentUser, loading, signOut } = useAuth();
   const location = useLocation();
+  const { familyId } = useTheme();
+  const [verifying, setVerifying] = useState(true);
 
-  if (loading) return null;
+  useEffect(() => {
+    async function verifyUser() {
+      if (!currentUser || !familyId) {
+        setVerifying(false);
+        return;
+      }
+      
+      const email = currentUser.email?.toLowerCase();
+      if (!email) {
+        await signOut();
+        setVerifying(false);
+        return;
+      }
+
+      // Fetch family settings once to check authorization
+      const familyDoc = await getDoc(doc(db, 'families', familyId));
+      const authEmails = familyDoc.data()?.authorizedEmails || [];
+      
+      if (!authEmails.includes(email)) {
+         // Not authorized or revoked!
+         await deleteDoc(doc(db, 'users', currentUser.uid)).catch(() => {});
+         await signOut();
+         setVerifying(false);
+         return;
+      }
+
+      // They are authorized, ensure user doc exists
+      const userDocRef = doc(db, 'users', currentUser.uid);
+      const userDoc = await getDoc(userDocRef);
+      if (!userDoc.exists() || userDoc.data()?.familyId !== familyId) {
+         await setDoc(userDocRef, {
+            email: email,
+            familyId: familyId,
+            subscriptionTier: 'free'
+         });
+      }
+
+      setVerifying(false);
+    }
+    
+    if (!loading) {
+      verifyUser();
+    }
+  }, [currentUser, familyId, loading, signOut]);
+
+  if (loading || verifying) return <div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-500 font-medium">Verifying access...</div>;
   
   if (!currentUser) {
     return <Navigate to="/login" state={{ from: location }} replace />;

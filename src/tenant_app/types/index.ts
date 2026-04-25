@@ -11,6 +11,7 @@ export interface Recipe {
   imageUrl?: string;
   source?: 'manual' | 'camera' | 'url' | 'pinterest';
   sourceUrl?: string;
+  tags?: string[];
   createdAt: number;
   updatedAt: number;
 }

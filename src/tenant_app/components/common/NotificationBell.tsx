@@ -43,7 +43,9 @@ export function NotificationBell() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-zinc-100 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+        <>
+          <div className="fixed inset-0 z-40 sm:hidden" onClick={() => setIsOpen(false)} />
+          <div className="absolute right-0 mt-2 w-[calc(100vw-32px)] sm:w-80 max-w-[380px] bg-white rounded-2xl shadow-2xl border border-zinc-100 z-50 overflow-hidden animate-in fade-in slide-in-from-top-4 duration-200 origin-top-right">
           <div className="flex items-center justify-between p-4 border-b border-zinc-100 bg-zinc-50/50">
             <h3 className="font-bold text-zinc-900">Notifications</h3>
             {unreadCount > 0 && (
@@ -56,7 +58,7 @@ export function NotificationBell() {
             )}
           </div>
           
-          <div className="max-h-96 overflow-y-auto">
+          <div className="max-h-[60vh] sm:max-h-96 overflow-y-auto">
             {notifications.length === 0 ? (
               <div className="p-8 text-center text-zinc-500 font-medium text-[14px]">
                 You're all caught up!
@@ -88,6 +90,7 @@ export function NotificationBell() {
             )}
           </div>
         </div>
+        </>
       )}
     </div>
   );

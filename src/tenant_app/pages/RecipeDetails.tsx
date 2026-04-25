@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { PageWrapper } from '../components/layout/PageWrapper';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useRecipe } from '../hooks';
+import { useTenantData } from '../../context/TenantDataContext';
 import { db, storage, functions } from '../services/firebase/config';
 import { doc, updateDoc, deleteDoc, collection, query, where, onSnapshot } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
@@ -28,6 +29,7 @@ export function RecipeDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { recipe, loading } = useRecipe(id || '');
+  const { familySettings } = useTenantData();
 
   // 1. Local State
   const [isEditingHero, setIsEditingHero] = useState(false);
@@ -36,6 +38,7 @@ export function RecipeDetails() {
   const [editIsHealthy, setEditIsHealthy] = useState(false);
   const [editCookTime, setEditCookTime] = useState('');
   const [editImageUrl, setEditImageUrl] = useState('');
+  const [editTags, setEditTags] = useState<string[]>([]);
   const [deleting, setDeleting] = useState(false);
 
   const [isEditingIngredients, setIsEditingIngredients] = useState(false);
@@ -89,6 +92,7 @@ export function RecipeDetails() {
     setEditIsHealthy(recipe.isHealthy);
     setEditCookTime(recipe.cookTime || '');
     setEditImageUrl(recipe.imageUrl || '');
+    setEditTags(recipe.tags || []);
     setIsEditingHero(true);
   };
 
@@ -113,7 +117,8 @@ export function RecipeDetails() {
       category: editCategory,
       isHealthy: editIsHealthy,
       cookTime: editCookTime.trim() || null,
-      imageUrl: editImageUrl.trim() || null
+      imageUrl: editImageUrl.trim() || null,
+      tags: editTags
     });
     setSavingSection(null);
     setIsEditingHero(false);
@@ -136,6 +141,28 @@ export function RecipeDetails() {
     setSavingSection(null);
     setIsEditingInstructions(false);
   };
+  const handleAddNewTag = async () => {
+    const tag = window.prompt("Enter a new tag (e.g. Keto, BBQ):");
+    if (!tag || !tag.trim()) return;
+    const newTag = tag.trim();
+    if (!editTags.map(t => t.toLowerCase()).includes(newTag.toLowerCase())) {
+      setEditTags([...editTags, newTag]);
+    }
+  };
+
+  const handleToggleTag = (tag: string) => {
+    if (editTags.includes(tag)) {
+      setEditTags(editTags.filter(t => t !== tag));
+    } else {
+      setEditTags([...editTags, tag]);
+    }
+  };
+
+  const availableTags = (() => {
+    const standard = ['Entrées', 'Sides', 'Sauces', 'Snacks', 'Desserts', 'Smoothies', 'Dips'];
+    const custom = familySettings?.customTags || [];
+    return Array.from(new Set([...standard, ...custom]));
+  })();
 
   const handleDelete = async () => {
     if (!recipe || !id) return;
@@ -252,7 +279,7 @@ export function RecipeDetails() {
                 </button>
 
                 <div className="absolute bottom-6 left-6 pr-6 w-full print:static print:px-0">
-                  <div className="flex items-center gap-2 mb-3 print:hidden">
+                  <div className="flex flex-wrap items-center gap-2 mb-3 print:hidden">
                     <Badge variant="primary" className="!bg-primary-500 !border-primary-500 !text-white !font-bold tracking-wider">{recipe.category}</Badge>
                     {recipe.isHealthy ? 
                        <Badge variant="success" className="!bg-success-500 !border-success-500 !text-white !font-bold tracking-wider">🌿 Healthy</Badge> : 
@@ -263,6 +290,11 @@ export function RecipeDetails() {
                           <Clock className="w-3.5 h-3.5 stroke-[3]" /> {recipe.cookTime}
                        </Badge>
                     )}
+                    {recipe.tags?.map(tag => (
+                       <Badge key={tag} variant="default" className="!bg-zinc-800/60 !border-zinc-700 !text-white !font-bold tracking-wider backdrop-blur-md">
+                          {tag}
+                       </Badge>
+                    ))}
                   </div>
                   <h1 className="text-[32px] font-bold text-white print:text-zinc-900 leading-[1.1] tracking-tight drop-shadow-lg print:drop-shadow-none pr-4">{recipe.title}</h1>
                 </div>
@@ -313,6 +345,36 @@ export function RecipeDetails() {
                         </Button>
                       </div>
                     </div>
+                  </div>
+                  <div>
+                    <label className="block text-[12px] font-bold tracking-widest text-zinc-400 uppercase mb-2">Tags</label>
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {availableTags.map(tag => (
+                        <button
+                          key={tag}
+                          onClick={() => handleToggleTag(tag)}
+                          className={`px-3 py-1.5 rounded-full text-[12px] font-bold tracking-wide transition-all ${editTags.includes(tag) ? 'bg-primary-600 text-white' : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200'}`}
+                        >
+                          {tag}
+                        </button>
+                      ))}
+                      {editTags.filter(t => !availableTags.includes(t)).map(tag => (
+                        <button
+                          key={tag}
+                          onClick={() => handleToggleTag(tag)}
+                          className="px-3 py-1.5 rounded-full text-[12px] font-bold tracking-wide transition-all bg-primary-600 text-white"
+                        >
+                          {tag}
+                        </button>
+                      ))}
+                      <button
+                        onClick={handleAddNewTag}
+                        className="px-3 py-1.5 rounded-full text-[12px] font-bold tracking-wide transition-all bg-primary-50 text-primary-600 border border-primary-200 border-dashed hover:border-primary-400"
+                      >
+                        + Add Tag
+                      </button>
+                    </div>
+                    <p className="text-[11px] text-zinc-400 font-medium">Select tags to organize this recipe, or add a custom one.</p>
                   </div>
                   <div className="flex flex-col-reverse sm:flex-row justify-between items-stretch sm:items-center pt-6 gap-3">
                      <button 

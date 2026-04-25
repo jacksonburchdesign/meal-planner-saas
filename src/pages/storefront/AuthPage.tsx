@@ -57,8 +57,7 @@ export default function AuthPage() {
       style={{
         height: '100dvh',
         width: '100%',
-        backgroundColor: '#d6eaf8',
-        backgroundImage: 'radial-gradient(ellipse at 25% 15%, #bdddf5 0%, #d6eaf8 45%, #c5dcf0 100%)',
+        backgroundColor: 'hsl(var(--bg-app))',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',

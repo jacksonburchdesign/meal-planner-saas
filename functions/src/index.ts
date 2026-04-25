@@ -180,6 +180,7 @@ export const importRecipeFromUrl = functions.https.onCall(async (request: functi
       familyId,
       source: 'url',
       sourceUrl: url,
+      tags: [],
       createdAt: Date.now(),
       updatedAt: Date.now()
     };
@@ -219,6 +220,7 @@ export const parseScannedRecipe = functions.https.onCall(async (request: functio
       ...parsedRecipe,
       familyId: userData.familyId,
       source: 'camera',
+      tags: [],
       createdAt: Date.now(),
       updatedAt: Date.now()
     };
@@ -236,7 +238,12 @@ export const parseScannedRecipe = functions.https.onCall(async (request: functio
 // ==========================================
 import { FirestoreEvent, QueryDocumentSnapshot } from 'firebase-functions/v2/firestore';
 
-export const processPinterestImport = onDocumentCreated('pinterestImports/{importId}', async (event: FirestoreEvent<QueryDocumentSnapshot | undefined, { importId: string }>) => {
+export const processPinterestImport = onDocumentCreated(
+  {
+    document: 'pinterestImports/{importId}',
+    timeoutSeconds: 540
+  },
+  async (event: FirestoreEvent<QueryDocumentSnapshot | undefined, { importId: string }>) => {
     const snap = event.data;
     if (!snap) return null;
 
@@ -262,8 +269,8 @@ export const processPinterestImport = onDocumentCreated('pinterestImports/{impor
           }
        });
 
-       // Cap URL queue to avoid excessive billing limits and timeouts (50 recipes per queue)
-       const limitedUrls = Array.from(uniqueCleanLinks).slice(0, 50);
+       // Cap URL queue to avoid excessive billing limits and timeouts (150 recipes per queue)
+       const limitedUrls = Array.from(uniqueCleanLinks).slice(0, 150);
 
        const urlQueue = limitedUrls.map(link => ({ link, status: 'pending' }));
        await importRef.update({ status: 'processing', urls: urlQueue });
@@ -288,6 +295,7 @@ export const processPinterestImport = onDocumentCreated('pinterestImports/{impor
                 familyId: data.familyId,
                 source: 'pinterest',
                 sourceUrl: u.link,
+                tags: [],
                 createdAt: Date.now(),
                 updatedAt: Date.now()
              };
@@ -320,15 +328,15 @@ export const processPinterestImport = onDocumentCreated('pinterestImports/{impor
 // ==========================================
 // GENERATE WEEKLY PLAN (AI)
 // ==========================================
-export const generateWeeklyPlan = functions.https.onCall(async (data, context) => {
-  if (!context.auth) throw new functions.https.HttpsError('unauthenticated', 'Must be logged in');
+export const generateWeeklyPlan = functions.https.onCall(async (request: functions.https.CallableRequest) => {
+  if (!request.auth) throw new functions.https.HttpsError('unauthenticated', 'Must be logged in');
   
-  const uid = context.auth.uid;
+  const uid = request.auth.uid;
   const userDoc = await admin.firestore().collection('users').doc(uid).get();
   const familyId = userDoc.data()?.familyId;
   if (!familyId) throw new functions.https.HttpsError('failed-precondition', 'No family attached');
 
-  const { isNextWeek } = data || {};
+  const { isNextWeek } = request.data || {};
 
   const familyDoc = await admin.firestore().collection('families').doc(familyId).get();
   const healthyTarget = familyDoc.data()?.mealPreferences?.healthyMealsPerWeek ?? 5;
@@ -367,7 +375,7 @@ export const generateWeeklyPlan = functions.https.onCall(async (data, context) =
      }
   }
 
-  const selectedIds = await generateWeeklyPlanWithAI(allRecipes, historyRecipeIds, currentPlanRecipeIds, healthyTarget, indulgentTarget);
+  const selectedIds = await generateWeeklyPlanWithAI(allRecipes as any[], historyRecipeIds, currentPlanRecipeIds, healthyTarget, indulgentTarget);
 
   const newMeals = selectedIds.map((id, index) => ({
     id: `meal_${Date.now()}_${index}`,
@@ -392,13 +400,13 @@ export const generateWeeklyPlan = functions.https.onCall(async (data, context) =
 // ==========================================
 // FAMILY CONNECTIONS
 // ==========================================
-export const sendConnectionRequest = functions.https.onCall(async (data, context) => {
-  if (!context.auth) throw new functions.https.HttpsError('unauthenticated', 'Must be logged in');
+export const sendConnectionRequest = functions.https.onCall(async (request: functions.https.CallableRequest) => {
+  if (!request.auth) throw new functions.https.HttpsError('unauthenticated', 'Must be logged in');
   
-  const { email } = data;
+  const { email } = request.data;
   if (!email) throw new functions.https.HttpsError('invalid-argument', 'Email is required');
 
-  const senderDoc = await admin.firestore().collection('users').doc(context.auth.uid).get();
+  const senderDoc = await admin.firestore().collection('users').doc(request.auth.uid).get();
   const fromFamilyId = senderDoc.data()?.familyId;
   const senderEmail = senderDoc.data()?.email;
   
@@ -453,16 +461,16 @@ export const sendConnectionRequest = functions.https.onCall(async (data, context
   return { success: true };
 });
 
-export const respondToConnection = functions.https.onCall(async (data, context) => {
-  if (!context.auth) throw new functions.https.HttpsError('unauthenticated', 'Must be logged in');
+export const respondToConnection = functions.https.onCall(async (request: functions.https.CallableRequest) => {
+  if (!request.auth) throw new functions.https.HttpsError('unauthenticated', 'Must be logged in');
   
-  const { connectionId, accept } = data;
+  const { connectionId, accept } = request.data;
   const connRef = admin.firestore().collection('familyConnections').doc(connectionId);
   const connDoc = await connRef.get();
   
   if (!connDoc.exists) throw new functions.https.HttpsError('not-found', 'Connection not found');
   
-  const userDoc = await admin.firestore().collection('users').doc(context.auth.uid).get();
+  const userDoc = await admin.firestore().collection('users').doc(request.auth.uid).get();
   const myFamilyId = userDoc.data()?.familyId;
   
   if (connDoc.data()?.toFamilyId !== myFamilyId) throw new functions.https.HttpsError('permission-denied', 'Not authorized');
@@ -484,17 +492,17 @@ export const respondToConnection = functions.https.onCall(async (data, context) 
   return { success: true };
 });
 
-export const shareRecipe = functions.https.onCall(async (data, context) => {
-  if (!context.auth) throw new functions.https.HttpsError('unauthenticated', 'Must be logged in');
+export const shareRecipe = functions.https.onCall(async (request: functions.https.CallableRequest) => {
+  if (!request.auth) throw new functions.https.HttpsError('unauthenticated', 'Must be logged in');
   
-  const { recipeId, targetFamilyId } = data;
+  const { recipeId, targetFamilyId } = request.data;
   
   const recipeDoc = await admin.firestore().collection('recipes').doc(recipeId).get();
   if (!recipeDoc.exists) throw new functions.https.HttpsError('not-found', 'Recipe not found');
   
   const recipeData = recipeDoc.data()!;
   
-  const senderDoc = await admin.firestore().collection('users').doc(context.auth.uid).get();
+  const senderDoc = await admin.firestore().collection('users').doc(request.auth.uid).get();
   const fromFamilyId = senderDoc.data()?.familyId;
   const fromFamilyDoc = await admin.firestore().collection('families').doc(fromFamilyId).get();
   const fromFamilyName = fromFamilyDoc.data()?.familyName || 'Someone';
