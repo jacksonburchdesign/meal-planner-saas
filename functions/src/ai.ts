@@ -3,7 +3,7 @@ import { GoogleGenAI } from '@google/genai';
 // Initialize the API using Application Default Credentials through Vertex AI
 // We must explicitly declare the vertexai object so the SDK routes to aiplatform.googleapis.com
 // Otherwise, it incorrectly falls back to AI Studio which rejects service accounts.
-const ai = new GoogleGenAI({ 
+const getAI = () => new GoogleGenAI({ 
   vertexai: true,
   project: process.env.GCLOUD_PROJECT || "meal-house-saas", 
   location: 'us-central1' 
@@ -43,7 +43,7 @@ export async function extractRecipeFromText(text: string, ogImageUrl?: string) {
     prompt += `\n\nNote: The source page has this hero image URL available: ${ogImageUrl}. You should prioritize using this for the imageUrl field if it looks like a valid food/recipe image.`;
   }
   
-  const response = await ai.models.generateContent({
+  const response = await getAI().models.generateContent({
     model: 'gemini-2.5-flash',
     contents: prompt,
     config: {
@@ -70,7 +70,7 @@ export async function extractRecipeFromImages(images: {base64: string, mimeType:
 
   const prompt = `You are a culinary expert AI. Extract the recipe from these images. Look for the title, ingredients, and step-by-step instructions. Output strictly in JSON format matching the schema. If there is no specific recipe hero image, output a blank string or null.`;
 
-  const response = await ai.models.generateContent({
+  const response = await getAI().models.generateContent({
     model: 'gemini-2.5-flash',
     contents: [
       ...parts,

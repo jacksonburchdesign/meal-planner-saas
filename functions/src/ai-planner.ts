@@ -1,6 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const getAI = () => new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 export interface RecipePayload {
   id: string;
@@ -40,7 +40,7 @@ Current Week Recipe IDs: ${JSON.stringify(currentPlanRecipes)}
   `;
 
   try {
-    const response = await ai.models.generateContent({
+    const response = await getAI().models.generateContent({
       model: "gemini-2.5-pro",
       contents: prompt,
       config: {

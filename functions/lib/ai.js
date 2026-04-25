@@ -6,7 +6,7 @@ const genai_1 = require("@google/genai");
 // Initialize the API using Application Default Credentials through Vertex AI
 // We must explicitly declare the vertexai object so the SDK routes to aiplatform.googleapis.com
 // Otherwise, it incorrectly falls back to AI Studio which rejects service accounts.
-const ai = new genai_1.GoogleGenAI({
+const getAI = () => new genai_1.GoogleGenAI({
     vertexai: true,
     project: process.env.GCLOUD_PROJECT || "meal-house-saas",
     location: 'us-central1'
@@ -15,6 +15,7 @@ const JSON_SCHEMA = {
     type: "object",
     properties: {
         title: { type: "string" },
+        cookTime: { type: "string", description: "The total cook time or prep time for the recipe (e.g. '30 mins', '1 hour'). If none is specified, estimate it based on the recipe steps, or output a blank string." },
         category: { type: "string", enum: ["breakfast", "entrées", "sides", "desserts"] },
         isHealthy: { type: "boolean" },
         imageUrl: { type: "string", description: "The high-resolution hero image URL of the recipe." },
@@ -35,14 +36,14 @@ const JSON_SCHEMA = {
             items: { type: "string" }
         }
     },
-    required: ["title", "category", "isHealthy", "imageUrl", "ingredients", "instructions"]
+    required: ["title", "cookTime", "category", "isHealthy", "imageUrl", "ingredients", "instructions"]
 };
 async function extractRecipeFromText(text, ogImageUrl) {
     let prompt = `You are an expert recipe extractor. Read the following text and extract the recipe strictly in JSON.\n\nText: ${text.substring(0, 30000)}`; // safeguard token limits
     if (ogImageUrl) {
         prompt += `\n\nNote: The source page has this hero image URL available: ${ogImageUrl}. You should prioritize using this for the imageUrl field if it looks like a valid food/recipe image.`;
     }
-    const response = await ai.models.generateContent({
+    const response = await getAI().models.generateContent({
         model: 'gemini-2.5-flash',
         contents: prompt,
         config: {
@@ -64,7 +65,7 @@ async function extractRecipeFromImages(images) {
         }
     }));
     const prompt = `You are a culinary expert AI. Extract the recipe from these images. Look for the title, ingredients, and step-by-step instructions. Output strictly in JSON format matching the schema. If there is no specific recipe hero image, output a blank string or null.`;
-    const response = await ai.models.generateContent({
+    const response = await getAI().models.generateContent({
         model: 'gemini-2.5-flash',
         contents: [
             ...parts,
