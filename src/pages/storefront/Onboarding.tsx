@@ -639,14 +639,17 @@ export default function Onboarding() {
                   boxShadow: '0 8px 30px rgba(0,0,0,0.04), 0 0 0 1px rgba(255,255,255,0.6)',
                 }}>
                   {logoType === 'icon' ? (
-                    <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 8, maxHeight: 90, overflowY: 'auto', paddingRight: 4 }}>
+                    <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 8, maxHeight: 150, overflowY: 'auto', paddingRight: 4 }}>
                       {ICON_OPTIONS.map((opt) => (
-                        <div 
-                          key={opt.name} 
+                        <button 
+                          key={opt.name}
+                          type="button"
+                          aria-label={`Select ${opt.name} icon`}
                           onClick={() => setSelectedIconName(opt.name)}
                           style={{
                             aspectRatio: '1',
                             borderRadius: 8,
+                            border: 'none',
                             backgroundColor: selectedIconName === opt.name ? primaryColor : 'rgba(255,255,255,0.4)',
                             display: 'flex',
                             alignItems: 'center',
@@ -656,8 +659,8 @@ export default function Onboarding() {
                             transition: 'all 0.15s'
                           }}
                         >
-                          <opt.icon width={20} height={20} />
-                        </div>
+                          <opt.icon width={28} height={28} />
+                        </button>
                       ))}
                     </div>
                   ) : (
@@ -730,6 +733,11 @@ export default function Onboarding() {
                     </span>
                   )}
                 </button>
+                
+                <p style={{ textAlign: 'center', fontSize: '0.85rem', color: 'hsl(var(--text-secondary))', fontWeight: 600, marginTop: '2px', marginBottom: '4px' }}>
+                  Includes a <span style={{ color: 'hsl(var(--text-primary))', fontWeight: 800 }}>30-day free trial</span>. Cancel anytime.
+                </p>
+
                 <button
                   type="button"
                   onClick={() => setStage(1)}
