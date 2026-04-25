@@ -35,21 +35,23 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <AppThemeWrapper>
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/success" element={<Success />} />
-            
-            {/* Protected Routes */}
-            <Route path="/" element={<ProtectedRoute><TenantDataProvider><Home /></TenantDataProvider></ProtectedRoute>} />
-            <Route path="/recipes" element={<ProtectedRoute><TenantDataProvider><AllRecipes /></TenantDataProvider></ProtectedRoute>} />
-            <Route path="/recipes/:id" element={<ProtectedRoute><TenantDataProvider><RecipeDetails /></TenantDataProvider></ProtectedRoute>} />
-            <Route path="/history" element={<ProtectedRoute><TenantDataProvider><History /></TenantDataProvider></ProtectedRoute>} />
-            <Route path="/ingredients" element={<ProtectedRoute><TenantDataProvider><Ingredients /></TenantDataProvider></ProtectedRoute>} />
-            <Route path="/connections" element={<ProtectedRoute><TenantDataProvider><Connections /></TenantDataProvider></ProtectedRoute>} />
-          </Routes>
-          <PwaPrompt />
-        </AppThemeWrapper>
+        <TenantDataProvider>
+          <AppThemeWrapper>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/success" element={<Success />} />
+              
+              {/* Protected Routes */}
+              <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+              <Route path="/recipes" element={<ProtectedRoute><AllRecipes /></ProtectedRoute>} />
+              <Route path="/recipes/:id" element={<ProtectedRoute><RecipeDetails /></ProtectedRoute>} />
+              <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
+              <Route path="/ingredients" element={<ProtectedRoute><Ingredients /></ProtectedRoute>} />
+              <Route path="/connections" element={<ProtectedRoute><Connections /></ProtectedRoute>} />
+            </Routes>
+            <PwaPrompt />
+          </AppThemeWrapper>
+        </TenantDataProvider>
       </AuthProvider>
     </BrowserRouter>
   );
