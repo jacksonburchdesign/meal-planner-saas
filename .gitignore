@@ -34,3 +34,6 @@ dist-ssr
 # Firebase
 .firebase/
 firebase-export-*/
+service-account.json
+firebase-debug.log
+firestore-debug.log

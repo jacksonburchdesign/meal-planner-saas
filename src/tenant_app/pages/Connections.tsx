@@ -1,48 +1,16 @@
-import { useState, useEffect } from 'react';
-import { collection, query, where, onSnapshot, doc, deleteDoc, addDoc } from 'firebase/firestore';
+import { useState } from 'react';
+import { collection, doc, deleteDoc, addDoc } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { PageWrapper } from '../components/layout/PageWrapper';
 import { Button, Input } from '../components/common';
 import { db, functions } from '../services/firebase/config';
-import { useTheme } from '../../context/ThemeContext';
 import { Check, Xmark, Mail, UserPlus, Book } from 'iconoir-react';
-import type { FamilyConnection } from '../types';
+import { useTenantData } from '../../context/TenantDataContext';
 
 export function Connections() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
-  const [connections, setConnections] = useState<FamilyConnection[]>([]);
-  const [sharedRecipes, setSharedRecipes] = useState<any[]>([]);
-  const { familyId } = useTheme();
-
-  useEffect(() => {
-    if (!familyId) return;
-
-    // Fetch active connections
-    const qConn = query(
-      collection(db, 'familyConnections'),
-      where('fromFamilyId', '==', familyId),
-      where('status', '==', 'active')
-    );
-    const unsubConn = onSnapshot(qConn, (snap) => {
-      setConnections(snap.docs.map(d => ({ id: d.id, ...d.data() } as FamilyConnection)));
-    });
-
-    // Fetch shared recipes inbox
-    const qShared = query(
-      collection(db, 'sharedRecipes'),
-      where('targetFamilyId', '==', familyId),
-      where('status', '==', 'pending')
-    );
-    const unsubShared = onSnapshot(qShared, (snap) => {
-      setSharedRecipes(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    });
-
-    return () => {
-      unsubConn();
-      unsubShared();
-    };
-  }, [familyId]);
+  const { connections, sharedRecipesInbox: sharedRecipes } = useTenantData();
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();

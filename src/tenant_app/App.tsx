@@ -11,6 +11,7 @@ import { Login } from './pages/Login';
 import { Success } from './pages/Success';
 import { PwaPrompt } from './components/pwa/PwaPrompt';
 import { useFamilySettings } from './hooks';
+import { TenantDataProvider } from '../context/TenantDataContext';
 
 function AppThemeWrapper({ children }: { children: ReactNode }) {
   useFamilySettings(); // Mounts the theme listener dynamically
@@ -40,12 +41,12 @@ function App() {
             <Route path="/success" element={<Success />} />
             
             {/* Protected Routes */}
-            <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
-            <Route path="/recipes" element={<ProtectedRoute><AllRecipes /></ProtectedRoute>} />
-            <Route path="/recipes/:id" element={<ProtectedRoute><RecipeDetails /></ProtectedRoute>} />
-            <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
-            <Route path="/ingredients" element={<ProtectedRoute><Ingredients /></ProtectedRoute>} />
-            <Route path="/connections" element={<ProtectedRoute><Connections /></ProtectedRoute>} />
+            <Route path="/" element={<ProtectedRoute><TenantDataProvider><Home /></TenantDataProvider></ProtectedRoute>} />
+            <Route path="/recipes" element={<ProtectedRoute><TenantDataProvider><AllRecipes /></TenantDataProvider></ProtectedRoute>} />
+            <Route path="/recipes/:id" element={<ProtectedRoute><TenantDataProvider><RecipeDetails /></TenantDataProvider></ProtectedRoute>} />
+            <Route path="/history" element={<ProtectedRoute><TenantDataProvider><History /></TenantDataProvider></ProtectedRoute>} />
+            <Route path="/ingredients" element={<ProtectedRoute><TenantDataProvider><Ingredients /></TenantDataProvider></ProtectedRoute>} />
+            <Route path="/connections" element={<ProtectedRoute><TenantDataProvider><Connections /></TenantDataProvider></ProtectedRoute>} />
           </Routes>
           <PwaPrompt />
         </AppThemeWrapper>

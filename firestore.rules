@@ -51,7 +51,27 @@ service cloud.firestore {
     }
 
     // mealHistory collection
+    // mealHistory collection
     match /mealHistory/{historyId} {
+      allow read, update, delete: if isAuthenticated() && resource.data.familyId == getUserFamilyId();
+      allow create: if isAuthenticated() && request.resource.data.familyId == getUserFamilyId();
+    }
+
+    // familyConnections collection
+    match /familyConnections/{connectionId} {
+      allow read, delete: if isAuthenticated() && (resource.data.fromFamilyId == getUserFamilyId() || resource.data.toFamilyId == getUserFamilyId());
+      // Create and update managed primarily via Cloud Functions for approval workflows, but allow basic access if needed
+      allow create, update: if isAuthenticated() && (request.resource.data.fromFamilyId == getUserFamilyId() || request.resource.data.toFamilyId == getUserFamilyId());
+    }
+
+    // sharedRecipes collection
+    match /sharedRecipes/{sharedId} {
+      allow read, delete: if isAuthenticated() && (resource.data.fromFamilyId == getUserFamilyId() || resource.data.targetFamilyId == getUserFamilyId());
+      allow create, update: if isAuthenticated() && (request.resource.data.fromFamilyId == getUserFamilyId() || request.resource.data.targetFamilyId == getUserFamilyId());
+    }
+
+    // notifications collection
+    match /notifications/{notificationId} {
       allow read, update, delete: if isAuthenticated() && resource.data.familyId == getUserFamilyId();
       allow create: if isAuthenticated() && request.resource.data.familyId == getUserFamilyId();
     }

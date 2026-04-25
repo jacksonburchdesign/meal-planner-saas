@@ -25,7 +25,7 @@ export function History() {
     return onSnapshot(q, snapshot => {
       setHistory(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as MealHistoryLog)));
     });
-  }, []);
+  }, [familyId]);
 
   return (
     <PageWrapper title="History">

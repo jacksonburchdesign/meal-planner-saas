@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, useNavigate, Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -294,7 +294,7 @@ const FLOATING_ICONS = [
 ];
 
 export function FloatingBackground() {
-  const items = useMemo(() => {
+  const [items] = useState(() => {
     const cols = 4;
     const rows = 3;
 
@@ -326,7 +326,7 @@ export function FloatingBackground() {
         rotation: [0, Math.random() > 0.5 ? 180 : -180, Math.random() > 0.5 ? 360 : -360]
       };
     });
-  }, []);
+  });
 
   return (
     <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 }}>

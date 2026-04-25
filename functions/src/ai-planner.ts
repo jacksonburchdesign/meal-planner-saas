@@ -3,9 +3,16 @@ import * as functions from "firebase-functions";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
+export interface RecipePayload {
+  id: string;
+  title: string;
+  category: string;
+  isHealthy: boolean;
+}
+
 export async function generateWeeklyPlanWithAI(
-  recipes: any[],
-  history: any[],
+  recipes: RecipePayload[],
+  history: string[],
   currentPlanRecipes: string[],
   healthyTarget: number,
   indulgentTarget: number
@@ -64,7 +71,7 @@ Current Week Recipe IDs: ${JSON.stringify(currentPlanRecipes)}
   }
 }
 
-function fallbackSelection(recipes: any[], healthyTarget: number, indulgentTarget: number): string[] {
+function fallbackSelection(recipes: RecipePayload[], healthyTarget: number, indulgentTarget: number): string[] {
   // Simple random fallback
   const healthyRecipes = recipes.filter(r => r.isHealthy).map(r => r.id);
   const indulgentRecipes = recipes.filter(r => !r.isHealthy).map(r => r.id);

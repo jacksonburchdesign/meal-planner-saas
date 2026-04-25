@@ -1,36 +1,12 @@
 import { useState, useEffect } from 'react';
-import { collection, doc, query, onSnapshot, orderBy, where } from 'firebase/firestore';
+import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../services/firebase/config';
+import { useTenantData } from '../../context/TenantDataContext';
 import type { Recipe } from '../types';
-import { useTheme } from '../../context/ThemeContext';
 
 export function useRecipes() {
-  const [recipes, setRecipes] = useState<Recipe[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { familyId } = useTheme();
-
-  useEffect(() => {
-    if (!familyId) return;
-
-    const q = query(collection(db, 'recipes'), where('familyId', '==', familyId), orderBy('createdAt', 'desc'));
-    
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const parsedRecipes = snapshot.docs.map(d => ({
-        id: d.id,
-        ...d.data()
-      })) as Recipe[];
-      
-      setRecipes(parsedRecipes);
-      setLoading(false);
-    }, (error) => {
-      console.error("Error fetching recipes:", error);
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  return { recipes, loading };
+  const { recipes, recipesLoading } = useTenantData();
+  return { recipes, loading: recipesLoading };
 }
 
 export function useRecipe(id: string | undefined) {

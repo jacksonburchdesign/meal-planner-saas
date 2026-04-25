@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Bell } from 'iconoir-react';
 import { useNotifications } from '../../hooks';
 import { useNavigate } from 'react-router-dom';
+import type { AppNotification } from '../../types';
 
 export function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
@@ -19,8 +20,8 @@ export function NotificationBell() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleNotificationClick = (notification: any) => {
-    markAsRead(notification.id);
+  const handleNotificationClick = (notification: AppNotification) => {
+    if (notification.id) markAsRead(notification.id);
     setIsOpen(false);
     
     if (notification.type === 'connection_request' || notification.type === 'recipe_shared') {

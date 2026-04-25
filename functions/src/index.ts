@@ -14,7 +14,8 @@ admin.initializeApp();
 // Initialize Stripe with Secret Key from Firebase Config/Environment Secrets
 const stripeSec = process.env.STRIPE_SECRET_KEY || "sk_test_PLACEHOLDER";
 const stripe = new Stripe(stripeSec, {
-  apiVersion: '2025-02-24.acacia' as any,
+  // @ts-expect-error - using a beta API version
+  apiVersion: '2025-02-24.acacia',
 });
 
 const app = express();
@@ -101,10 +102,10 @@ app.post("/webhook", express.raw({ type: "application/json" }), async (req: expr
 
   try {
     // Note: In Cloud Functions, req.rawBody contains the raw bytes for verification
-    event = stripe.webhooks.constructEvent((req as any).rawBody, sig, endpointSecret);
-  } catch (err: any) {
-    console.error("Webhook Error:", err.message);
-    res.status(400).send(`Webhook Error: ${err.message}`);
+    event = stripe.webhooks.constructEvent((req as express.Request & { rawBody: Buffer }).rawBody, sig, endpointSecret);
+  } catch (err: unknown) {
+    console.error("Webhook Error:", (err as Error).message);
+    res.status(400).send(`Webhook Error: ${(err as Error).message}`);
     return;
   }
 
@@ -152,7 +153,7 @@ export const api = functions.https.onRequest(app);
 // ==========================================
 // IMPORT RECIPE FROM URL
 // ==========================================
-export const importRecipeFromUrl = functions.https.onCall(async (request: any) => {
+export const importRecipeFromUrl = functions.https.onCall(async (request: functions.https.CallableRequest) => {
   if (!request.auth) {
     throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated.');
   }
@@ -194,7 +195,7 @@ export const importRecipeFromUrl = functions.https.onCall(async (request: any) =
 // ==========================================
 // IMPORT RECIPE FROM SCANNED CAMERA
 // ==========================================
-export const parseScannedRecipe = functions.https.onCall(async (request: any) => {
+export const parseScannedRecipe = functions.https.onCall(async (request: functions.https.CallableRequest) => {
   if (!request.auth) {
     throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated.');
   }
@@ -233,7 +234,9 @@ export const parseScannedRecipe = functions.https.onCall(async (request: any) =>
 // ==========================================
 // BACKGROUND PINTEREST PROCESSING
 // ==========================================
-export const processPinterestImport = onDocumentCreated('pinterestImports/{importId}', async (event: any) => {
+import { FirestoreEvent, QueryDocumentSnapshot } from 'firebase-functions/v2/firestore';
+
+export const processPinterestImport = onDocumentCreated('pinterestImports/{importId}', async (event: FirestoreEvent<QueryDocumentSnapshot | undefined, { importId: string }>) => {
     const snap = event.data;
     if (!snap) return null;
 
@@ -357,7 +360,7 @@ export const generateWeeklyPlan = functions.https.onCall(async (data, context) =
   if (!weeklyPlansSnap.empty) {
      if (isNextWeek) {
         const currentPlan = weeklyPlansSnap.docs[0].data();
-        currentPlanRecipeIds = currentPlan.meals.map((m: any) => m.recipeId);
+        currentPlanRecipeIds = currentPlan.meals.map((m: { recipeId: string }) => m.recipeId);
         startDate = currentPlan.startDate + (7 * 24 * 60 * 60 * 1000);
      } else {
         startDate = Date.now();

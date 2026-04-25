@@ -88,7 +88,7 @@ export function FamilyProfileModal({ onClose }: { onClose: () => void }) {
     return () => clearTimeout(handler);
   }, [localColor, settings.themeColor, updateSettings]);
 
-  const handleSelectIcon = async (SelectedIcon: any, iconName: string) => {
+  const handleSelectIcon = async (SelectedIcon: React.ElementType, iconName: string) => {
     if (!familyId) return;
     setIconGenerating(true);
     try {

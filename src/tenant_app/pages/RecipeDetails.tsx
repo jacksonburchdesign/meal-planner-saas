@@ -94,7 +94,7 @@ export function RecipeDetails() {
 
   const prepIngredients = () => {
     if (!recipe) return;
-    setEditIngredients(recipe.ingredients.map(i => `${i.amount} ${i.unit === 'whole' ? '' : i.unit} ${i.name}`.trim().replace(/\s+/g, ' ')));
+    setEditIngredients(recipe.ingredients.map((i: any) => `${i.amount} ${i.unit === 'whole' ? '' : i.unit} ${i.name}`.trim().replace(/\s+/g, ' ')));
     setIsEditingIngredients(true);
   };
 
@@ -353,7 +353,7 @@ export function RecipeDetails() {
 
               {!isEditingIngredients ? (
                 <ul className="space-y-1 mb-10">
-                  {recipe.ingredients.map((ing, i) => (
+                  {recipe.ingredients.map((ing: any, i: number) => (
                     <li key={i} className="flex items-center py-2.5 border-b border-zinc-100 last:border-0 hover:bg-zinc-50/50 px-2 -mx-2 rounded-lg transition-colors">
                       <div className="w-1.5 h-1.5 rounded-full bg-primary-300 mr-3 shadow-[0_0_8px_rgba(var(--color-primary-500),0.4)]"></div>
                       <div className="flex-1 text-[15.5px] text-zinc-800 font-medium">{ing.name}</div>
@@ -404,7 +404,7 @@ export function RecipeDetails() {
 
               {!isEditingInstructions ? (
                 <div className="space-y-6">
-                  {recipe.instructions.map((step, i) => (
+                  {recipe.instructions.map((step: string, i: number) => (
                     <div key={i} className="flex gap-4 p-2 -mx-2 hover:bg-zinc-50/50 rounded-xl transition-colors">
                       <div className="flex-shrink-0 w-7 h-7 rounded-full bg-zinc-900 text-white flex items-center justify-center text-xs font-bold font-sans shadow-md">
                         {i + 1}

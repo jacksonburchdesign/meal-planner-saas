@@ -1,37 +1,9 @@
-import { useState, useEffect } from 'react';
-import { collection, query, where, onSnapshot, orderBy, doc, updateDoc, writeBatch } from 'firebase/firestore';
+import { doc, updateDoc, writeBatch } from 'firebase/firestore';
 import { db } from '../services/firebase/config';
-import type { AppNotification } from '../types';
-import { useTheme } from '../../context/ThemeContext';
+import { useTenantData } from '../../context/TenantDataContext';
 
 export function useNotifications() {
-  const [notifications, setNotifications] = useState<AppNotification[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { familyId } = useTheme();
-
-  useEffect(() => {
-    if (!familyId) return;
-
-    const q = query(
-      collection(db, 'notifications'),
-      where('familyId', '==', familyId),
-      orderBy('createdAt', 'desc')
-    );
-    
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const notifs = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      } as AppNotification));
-      setNotifications(notifs);
-      setLoading(false);
-    }, (error) => {
-      console.error("Error fetching notifications:", error);
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, [familyId]);
+  const { notifications, notificationsLoading } = useTenantData();
 
   const markAsRead = async (notificationId: string) => {
     try {
@@ -57,5 +29,5 @@ export function useNotifications() {
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
-  return { notifications, loading, markAsRead, markAllAsRead, unreadCount };
+  return { notifications, loading: notificationsLoading, markAsRead, markAllAsRead, unreadCount };
 }

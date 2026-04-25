@@ -1,15 +1,15 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { PageWrapper } from '../components/layout/PageWrapper';
 import { useCurrentWeeklyMeals, useRecipes } from '../hooks';
 import { Check } from 'iconoir-react';
-import type { PlannedMeal, WeeklyMealPlan } from '../types';
+import type { PlannedMeal, WeeklyMealPlan, Ingredient } from '../types';
 
 export function Ingredients() {
   const { currentPlan, nextPlan, loading: loadingPlan } = useCurrentWeeklyMeals();
   const { recipes, loading: loadingRecipes } = useRecipes();
   const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
 
-  const buildShoppingList = (plan: WeeklyMealPlan | null) => {
+  const buildShoppingList = useCallback((plan: WeeklyMealPlan | null) => {
     if (!plan || recipes.length === 0) return [];
     
     // Get all recipeIds and sideIds from active meals
@@ -25,7 +25,7 @@ export function Ingredients() {
     }> = {};
     
     activeRecipes.forEach(recipe => {
-      recipe.ingredients?.forEach(ing => {
+      recipe.ingredients?.forEach((ing: Ingredient) => {
         const lowerName = (ing.name || 'Unnamed Ingredient').toLowerCase().trim();
         const displayUnit = (ing.unit || '').trim();
         const unitKey = displayUnit.toLowerCase();
@@ -60,10 +60,10 @@ export function Ingredients() {
         recipeCount: data.recipeIds.size
       };
     }).sort((a, b) => a.name.localeCompare(b.name));
-  };
+  }, [recipes]);
 
-  const shoppingListCurrent = useMemo(() => buildShoppingList(currentPlan), [currentPlan, recipes]);
-  const shoppingListNext = useMemo(() => buildShoppingList(nextPlan), [nextPlan, recipes]);
+  const shoppingListCurrent = useMemo(() => buildShoppingList(currentPlan), [currentPlan, buildShoppingList]);
+  const shoppingListNext = useMemo(() => buildShoppingList(nextPlan), [nextPlan, buildShoppingList]);
 
   const [activeTab, setActiveTab] = useState<'current' | 'next'>('current');
   const activeShoppingList = activeTab === 'current' ? shoppingListCurrent : shoppingListNext;

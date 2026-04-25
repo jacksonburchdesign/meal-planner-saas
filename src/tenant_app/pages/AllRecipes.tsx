@@ -5,7 +5,7 @@ import { ImportRecipeUrl } from '../components/recipe/ImportRecipeUrl';
 import { ImportPinterestBoard } from '../components/recipe/ImportPinterestBoard';
 import { ManualRecipeInput } from '../components/recipe/ManualRecipeInput';
 import { useNavigate } from 'react-router-dom';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import type { Variants } from 'framer-motion';
 import { Clock } from 'iconoir-react';
@@ -65,7 +65,7 @@ export function AllRecipes() {
   const [displayLimit, setDisplayLimit] = useState(20);
 
   // Reset limit when filters change
-  useMemo(() => {
+  useEffect(() => {
     setDisplayLimit(20);
   }, [activeFilters]);
 
