@@ -25,6 +25,8 @@ export function FamilyProfileModal({ onClose }: { onClose: () => void }) {
   const [localEmails, setLocalEmails] = useState<string[]>(settings.authorizedEmails || []);
   const [emailInput, setEmailInput] = useState('');
   
+  const [logoType, setLogoType] = useState<'icon' | 'letters'>('icon');
+  const [logoLetters, setLogoLetters] = useState(familyId?.substring(0, 2).toUpperCase() || 'MH');
   const [activeUsers, setActiveUsers] = useState<{ uid: string; email: string }[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
 
@@ -125,11 +127,20 @@ export function FamilyProfileModal({ onClose }: { onClose: () => void }) {
       await updateSettings({ themeColor: localColor });
       
       // Also regenerate the logo with the new color automatically
-      if (settings.iconName) {
+      let newIconUrl = '';
+      if (logoType === 'letters') {
+         const iconNode = (
+           <svg width="100%" height="100%" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+             <text x="50%" y="54%" dominantBaseline="middle" textAnchor="middle" fill={localColor} fontSize="48px" fontWeight="800" fontFamily="League Spartan, system-ui, sans-serif" letterSpacing="-0.02em">{logoLetters}</text>
+           </svg>
+         );
+         newIconUrl = await generatePngLogoUrl(familyId, iconNode, localColor);
+         await updateSettings({ iconUrl: newIconUrl });
+      } else if (settings.iconName) {
         const iconCompObj = ICONS_LIST.find(i => i.name === settings.iconName);
         if (iconCompObj) {
            const IconComp = iconCompObj.icon;
-           const newIconUrl = await generatePngLogoUrl(familyId, <IconComp width="100%" height="100%" color={localColor} strokeWidth={2.5} />, localColor);
+           newIconUrl = await generatePngLogoUrl(familyId, <IconComp width="100%" height="100%" fill={localColor} strokeWidth={(iconCompObj as any).isIconoir ? 2.5 : undefined} />, localColor);
            await updateSettings({ iconUrl: newIconUrl });
         }
       }
@@ -141,12 +152,32 @@ export function FamilyProfileModal({ onClose }: { onClose: () => void }) {
     }
   };
 
-  const handleSelectIcon = async (SelectedIcon: React.ElementType, iconName: string) => {
+  const handleSaveLetters = async () => {
     if (!familyId) return;
     setIconGenerating(true);
     try {
        const dynamicColor = localColor || settings.themeColor || "#5793d9";
-       const newIconUrl = await generatePngLogoUrl(familyId, <SelectedIcon width="100%" height="100%" color={dynamicColor} strokeWidth={2.5} />, dynamicColor);
+       const iconNode = (
+         <svg width="100%" height="100%" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+           <text x="50%" y="54%" dominantBaseline="middle" textAnchor="middle" fill={dynamicColor} fontSize="48px" fontWeight="800" fontFamily="League Spartan, system-ui, sans-serif" letterSpacing="-0.02em">{logoLetters}</text>
+         </svg>
+       );
+       const newIconUrl = await generatePngLogoUrl(familyId, iconNode, dynamicColor);
+       await updateSettings({ iconUrl: newIconUrl });
+    } catch (err) {
+       console.error(err);
+       alert("Failed to generate letter logo.");
+    } finally {
+       setIconGenerating(false);
+    }
+  };
+
+  const handleSelectIcon = async (SelectedIcon: React.ElementType, iconName: string, isIconoir?: boolean) => {
+    if (!familyId) return;
+    setIconGenerating(true);
+    try {
+       const dynamicColor = localColor || settings.themeColor || "#5793d9";
+       const newIconUrl = await generatePngLogoUrl(familyId, <SelectedIcon width="100%" height="100%" fill={dynamicColor} strokeWidth={isIconoir ? 2.5 : undefined} />, dynamicColor);
        await updateSettings({ iconUrl: newIconUrl, iconName });
     } catch (err) {
        console.error("Failed to generate updated logo", err);
@@ -279,22 +310,58 @@ export function FamilyProfileModal({ onClose }: { onClose: () => void }) {
 
           {/* Section: Family Logo */}
           <div className="space-y-3 pt-2">
-             <label className="block text-[12px] font-bold tracking-widest text-zinc-400 uppercase">App Logo Icon</label>
-             <p className="text-[13px] text-zinc-500 font-medium mb-3 leading-relaxed">Choose an icon to represent your family vault.</p>
-             <div className="grid grid-cols-4 sm:grid-cols-5 gap-3 bg-white/40 p-4 rounded-3xl border border-white/60 max-h-[300px] overflow-y-auto">
-               {ICONS_LIST.map(({ id, name, icon: IconComp }) => {
-                 const isActive = settings.iconName === name;
-                 return (
-                  <button
-                    key={id}
-                    onClick={() => handleSelectIcon(IconComp, name)}
-                    className={`flex items-center justify-center aspect-square rounded-2xl bg-white transition-all active:scale-95 shadow-sm border-[2px] ${isActive ? 'border-[var(--tenant-color-primary)] ring-2 ring-[var(--tenant-color-primary)]/20' : 'border-zinc-100 hover:border-zinc-300 hover:bg-zinc-50'}`}
-                  >
-                    <IconComp className={`w-7 h-7 stroke-[1.5] ${isActive ? 'text-[var(--tenant-color-primary)]' : 'text-zinc-700'}`} />
-                  </button>
-                 );
-               })}
+             <label className="block text-[12px] font-bold tracking-widest text-zinc-400 uppercase">App Logo</label>
+             <p className="text-[13px] text-zinc-500 font-medium mb-3 leading-relaxed">Design a logo to represent your family vault.</p>
+             
+             <div className="flex gap-2 mb-3">
+               <button
+                 type="button"
+                 onClick={() => setLogoType('icon')}
+                 className={`flex-1 py-1.5 rounded-xl text-[13px] font-bold border transition-all ${logoType === 'icon' ? 'border-[var(--tenant-color-primary)] bg-[var(--tenant-color-primary)]/10 text-[var(--tenant-color-primary)]' : 'border-black/5 bg-white text-zinc-500'}`}
+               >
+                 Icon
+               </button>
+               <button
+                 type="button"
+                 onClick={() => setLogoType('letters')}
+                 className={`flex-1 py-1.5 rounded-xl text-[13px] font-bold border transition-all ${logoType === 'letters' ? 'border-[var(--tenant-color-primary)] bg-[var(--tenant-color-primary)]/10 text-[var(--tenant-color-primary)]' : 'border-black/5 bg-white text-zinc-500'}`}
+               >
+                 Letters
+               </button>
              </div>
+
+             {logoType === 'icon' ? (
+               <div className="grid grid-cols-4 sm:grid-cols-5 gap-3 bg-white/40 p-4 rounded-3xl border border-white/60 max-h-[300px] overflow-y-auto">
+                 {ICONS_LIST.map((opt) => {
+                   const { id, name, icon: IconComp } = opt;
+                   const isIconoir = (opt as any).isIconoir;
+                   const isActive = settings.iconName === name;
+                   return (
+                    <button
+                      key={id}
+                      onClick={() => handleSelectIcon(IconComp, name, isIconoir)}
+                      className={`flex items-center justify-center aspect-square rounded-2xl bg-white transition-all active:scale-95 shadow-sm border-[2px] ${isActive ? 'border-[var(--tenant-color-primary)] ring-2 ring-[var(--tenant-color-primary)]/20' : 'border-zinc-100 hover:border-zinc-300 hover:bg-zinc-50'}`}
+                    >
+                      <IconComp className={`w-7 h-7 ${isActive ? 'text-[var(--tenant-color-primary)]' : 'text-zinc-700'} ${isIconoir ? 'stroke-[1.5]' : ''}`} />
+                    </button>
+                   );
+                 })}
+               </div>
+             ) : (
+               <div className="flex items-center gap-2">
+                 <input
+                   type="text"
+                   maxLength={2}
+                   value={logoLetters}
+                   onChange={(e) => setLogoLetters(e.target.value.toUpperCase())}
+                   placeholder="MH"
+                   className="flex-1 h-12 rounded-2xl text-center text-xl font-bold tracking-widest bg-white/50 backdrop-blur-sm border border-zinc-200 uppercase outline-none focus:border-[var(--tenant-color-primary)] transition-all"
+                 />
+                 <Button onClick={handleSaveLetters} disabled={iconGenerating || !logoLetters} className="px-6 shadow-sm h-12 shrink-0">
+                   {iconGenerating ? '...' : 'Save'}
+                 </Button>
+               </div>
+             )}
           </div>
 
            {/* Section: Authorized Emails */}
