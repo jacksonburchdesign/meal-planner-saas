@@ -158,10 +158,18 @@ export const importRecipeFromUrl = functions.https.onCall(async (request: functi
     throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated.');
   }
 
-  const { url, familyId } = request.data;
-  if (!url || !familyId) {
-    throw new functions.https.HttpsError('invalid-argument', 'Missing url or familyId');
+  const { url } = request.data;
+  if (!url) {
+    throw new functions.https.HttpsError('invalid-argument', 'Missing url');
   }
+
+  // Look up user securely to get familyId
+  const userDoc = await admin.firestore().collection('users').doc(request.auth.uid).get();
+  const userData = userDoc.data();
+  if (!userData || !userData.familyId) {
+    throw new functions.https.HttpsError('permission-denied', 'No active family profile found.');
+  }
+  const myFamilyId = userData.familyId;
 
   // Strip query parameters and hash fragments
   let cleanUrl = url;
@@ -177,7 +185,7 @@ export const importRecipeFromUrl = functions.https.onCall(async (request: functi
     // Supplement data
     const finalRecipe = {
       ...parsedRecipe,
-      familyId,
+      familyId: myFamilyId,
       source: 'url',
       sourceUrl: url,
       tags: [],
@@ -504,6 +512,10 @@ export const shareRecipe = functions.https.onCall(async (request: functions.http
   
   const senderDoc = await admin.firestore().collection('users').doc(request.auth.uid).get();
   const fromFamilyId = senderDoc.data()?.familyId;
+
+  if (recipeData.familyId !== fromFamilyId) {
+    throw new functions.https.HttpsError('permission-denied', 'You do not have permission to share this recipe.');
+  }
   const fromFamilyDoc = await admin.firestore().collection('families').doc(fromFamilyId).get();
   const fromFamilyName = fromFamilyDoc.data()?.familyName || 'Someone';
 

@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { collection, query, where, onSnapshot, orderBy, limit, doc } from 'firebase/firestore';
 import { db } from '../tenant_app/services/firebase/config';
 import { useTheme } from './ThemeContext';
+import { useAuth } from '../tenant_app/contexts/AuthContext';
 import type { Recipe, WeeklyMealPlan, AppNotification, FamilyConnection } from '../tenant_app/types';
 
 interface TenantDataState {
@@ -28,6 +29,9 @@ const TenantDataContext = createContext<TenantDataState | undefined>(undefined);
 
 export function TenantDataProvider({ children }: { children: ReactNode }) {
   const { familyId } = useTheme();
+  const { currentUser } = useAuth();
+  
+  const [isProvisioned, setIsProvisioned] = useState(false);
   
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [recipesLoading, setRecipesLoading] = useState(true);
@@ -47,6 +51,17 @@ export function TenantDataProvider({ children }: { children: ReactNode }) {
   const [familySettingsLoading, setFamilySettingsLoading] = useState(true);
 
   useEffect(() => {
+    if (!currentUser || !familyId) {
+      setIsProvisioned(false);
+      return;
+    }
+    const unsub = onSnapshot(doc(db, 'users', currentUser.uid), (docSnap) => {
+      setIsProvisioned(docSnap.exists() && docSnap.data()?.familyId === familyId);
+    });
+    return () => unsub();
+  }, [currentUser, familyId]);
+
+  useEffect(() => {
     if (!familyId) {
       setRecipesLoading(false);
       setWeeklyMealsLoading(false);
@@ -55,6 +70,24 @@ export function TenantDataProvider({ children }: { children: ReactNode }) {
       setFamilySettingsLoading(false);
       return;
     }
+
+    // 4. Family Settings (Publicly readable for subdomain checking)
+    const settingsUnsub = onSnapshot(
+      doc(db, 'families', familyId),
+      (docSnap) => {
+        if (docSnap.exists()) {
+          setFamilySettings({ id: docSnap.id, ...docSnap.data() });
+        }
+        setFamilySettingsLoading(false);
+      },
+      (error) => { console.error("Error fetching family settings:", error); setFamilySettingsLoading(false); }
+    );
+
+    // Wait for the user to be fully provisioned before querying private collections
+    if (!isProvisioned) {
+      return () => settingsUnsub();
+    }
+
 
     // 1. Recipes
     const recipesUnsub = onSnapshot(
@@ -94,17 +127,6 @@ export function TenantDataProvider({ children }: { children: ReactNode }) {
       (error) => { console.error("Error fetching notifications:", error); setNotificationsLoading(false); }
     );
 
-    // 4. Family Settings
-    const settingsUnsub = onSnapshot(
-      doc(db, 'families', familyId),
-      (docSnap) => {
-        if (docSnap.exists()) {
-          setFamilySettings({ id: docSnap.id, ...docSnap.data() });
-        }
-        setFamilySettingsLoading(false);
-      },
-      (error) => { console.error("Error fetching family settings:", error); setFamilySettingsLoading(false); }
-    );
 
     // 5. Connections
     const connectionsUnsub = onSnapshot(
@@ -133,7 +155,7 @@ export function TenantDataProvider({ children }: { children: ReactNode }) {
       connectionsUnsub();
       sharedInboxUnsub();
     };
-  }, [familyId]);
+  }, [familyId, isProvisioned]);
 
   return (
     <TenantDataContext.Provider value={{
