@@ -99,7 +99,14 @@ export default function Onboarding() {
       try {
         const docRef = doc(db, 'families', slug);
         const docSnap = await getDoc(docRef);
-        setIsSlugAvailable(!docSnap.exists());
+        
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          // If the family was created but they never paid, allow the slug to be reused
+          setIsSlugAvailable(data.status === 'unpaid');
+        } else {
+          setIsSlugAvailable(true);
+        }
       } catch (err) {
         console.error("Error checking slug:", err);
         setIsSlugAvailable(false);
@@ -659,7 +666,7 @@ export default function Onboarding() {
                             transition: 'all 0.15s'
                           }}
                         >
-                          <opt.icon width={28} height={28} />
+                          <opt.icon size={28} width={28} height={28} className="w-7 h-7 shrink-0" strokeWidth={opt.isIconoir ? 2.5 : undefined} />
                         </button>
                       ))}
                     </div>
