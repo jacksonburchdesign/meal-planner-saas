@@ -225,7 +225,8 @@ export default function Onboarding() {
 
       // 5. Initialize Stripe Checkout
       const STRIPE_PRICE_ID = 'price_1TNO4VJHX18tokZby4LeKs11';
-      const functionUrl = import.meta.env.VITE_STRIPE_CREATE_SESSION_URL || 'http://127.0.0.1:5001/jackson-cloud-portfolio/us-central1/api/create-checkout-session';
+      const BASE_URL = import.meta.env.VITE_STRIPE_API_URL || 'https://api-yr7sfhb5va-uc.a.run.app';
+      const functionUrl = `${BASE_URL}/create-checkout-session`;
 
       // Dynamically calculate return URLs based on execution environment (local loopback vs production)
       const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
