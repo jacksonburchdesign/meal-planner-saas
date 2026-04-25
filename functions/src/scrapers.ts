@@ -5,7 +5,13 @@ import * as cheerio from 'cheerio';
  */
 export async function scrapeRecipeTextAndImage(url: string): Promise<{ text: string, imageUrl?: string }> {
   try {
-    const res = await fetch(url);
+    const res = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+      }
+    });
     const html = await res.text();
     const $ = cheerio.load(html);
 
@@ -28,7 +34,13 @@ export async function scrapeRecipeTextAndImage(url: string): Promise<{ text: str
  */
 export async function extractPinterestBoardLinks(boardUrl: string): Promise<string[]> {
   try {
-    const res = await fetch(boardUrl);
+    const res = await fetch(boardUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+      }
+    });
     const html = await res.text();
 
     // 1. Try to parse the modern __PWS_INITIAL_PROPS__ JSON payload

@@ -29,9 +29,9 @@ export function Home() {
     try {
       const generatePlan = httpsCallable(functions, 'generateWeeklyPlan');
       await generatePlan({ isNextWeek });
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      alert("Failed to generate plan");
+      alert(error.message || "Failed to generate plan");
     } finally {
       setGenerating(false);
     }
@@ -134,9 +134,9 @@ export function Home() {
                 try {
                   await deleteDoc(doc(db, 'weeklyMeals', currentPlan.id!));
                   await handleGeneratePlan(false);
-                } catch (error) {
+                } catch (error: any) {
                   console.error("Failed to regenerate:", error);
-                  alert("Failed to regenerate plan.");
+                  alert(error.message || "Failed to regenerate plan.");
                 }
               }} 
               disabled={generating} 
@@ -179,9 +179,9 @@ export function Home() {
                     try {
                       await deleteDoc(doc(db, 'weeklyMeals', nextPlan.id!));
                       await handleGeneratePlan(true);
-                    } catch (error) {
+                    } catch (error: any) {
                       console.error("Failed to regenerate:", error);
-                      alert("Failed to regenerate plan.");
+                      alert(error.message || "Failed to regenerate plan.");
                     }
                   }} 
                   disabled={generating} 

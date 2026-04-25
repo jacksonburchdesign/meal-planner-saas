@@ -6,11 +6,16 @@ import { Button, Input } from '../components/common';
 import { db, functions } from '../services/firebase/config';
 import { Check, Xmark, Mail, UserPlus, Book } from 'iconoir-react';
 import { useTenantData } from '../../context/TenantDataContext';
+import { useTheme } from '../../context/ThemeContext';
 
 export function Connections() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const { connections, sharedRecipesInbox: sharedRecipes } = useTenantData();
+  const { familyId } = useTheme();
+
+  const activeConnections = connections.filter(c => c.status === 'active');
+  const pendingIncoming = connections.filter(c => c.status === 'pending' && c.toFamilyId === familyId);
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,6 +52,16 @@ export function Connections() {
       await deleteDoc(doc(db, 'sharedRecipes', sharedItemId));
     } catch (error) {
       console.error(error);
+    }
+  };
+
+  const handleRespondConnection = async (connectionId: string, accept: boolean) => {
+    try {
+      const respondFn = httpsCallable(functions, 'respondToConnection');
+      await respondFn({ connectionId, accept });
+    } catch (error) {
+      console.error(error);
+      alert('Failed to respond to connection request');
     }
   };
 
@@ -124,26 +139,67 @@ export function Connections() {
           </div>
         )}
 
+        {/* Pending Connection Requests */}
+        {pendingIncoming.length > 0 && (
+          <div>
+            <h2 className="text-lg font-bold text-zinc-900 mb-4 px-1">Connection Requests</h2>
+            <div className="space-y-3">
+              {pendingIncoming.map(req => (
+                <div key={req.id} className="bg-white rounded-2xl p-4 shadow-sm border border-zinc-100 flex items-center gap-4">
+                  <div className="w-10 h-10 bg-zinc-100 rounded-full flex items-center justify-center text-zinc-600 font-bold uppercase">
+                    {req.fromFamilyName.substring(0, 2)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-[15px] text-zinc-900 truncate">{req.fromFamilyName}</h3>
+                    <p className="text-[12px] text-zinc-500 font-medium truncate">
+                      wants to connect
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button 
+                      onClick={() => req.id && handleRespondConnection(req.id, false)}
+                      className="w-8 h-8 flex items-center justify-center rounded-full bg-zinc-100 text-zinc-500 hover:bg-zinc-200 transition-colors"
+                      title="Decline"
+                    >
+                      <Xmark className="w-4 h-4 stroke-[2.5]" />
+                    </button>
+                    <button 
+                      onClick={() => req.id && handleRespondConnection(req.id, true)}
+                      className="w-8 h-8 flex items-center justify-center rounded-full bg-primary-500 text-white hover:bg-primary-600 transition-colors shadow-sm"
+                      title="Accept"
+                    >
+                      <Check className="w-4 h-4 stroke-[3]" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Active Connections */}
         <div>
           <h2 className="text-lg font-bold text-zinc-900 mb-4 px-1">Connected Families</h2>
-          {connections.length === 0 ? (
+          {activeConnections.length === 0 ? (
             <div className="text-center py-8 bg-zinc-50 rounded-3xl border border-dashed border-zinc-200">
               <p className="text-[14px] text-zinc-500 font-medium">You don't have any connections yet.</p>
             </div>
           ) : (
             <div className="grid gap-3">
-              {connections.map(conn => (
-                <div key={conn.id} className="bg-white rounded-2xl p-4 shadow-sm border border-zinc-100 flex items-center gap-4">
-                  <div className="w-10 h-10 bg-zinc-100 rounded-full flex items-center justify-center text-zinc-600 font-bold uppercase">
-                    {conn.toFamilyName.substring(0, 2)}
+              {activeConnections.map(conn => {
+                const otherName = conn.toFamilyId === familyId ? conn.fromFamilyName : conn.toFamilyName;
+                return (
+                  <div key={conn.id} className="bg-white rounded-2xl p-4 shadow-sm border border-zinc-100 flex items-center gap-4">
+                    <div className="w-10 h-10 bg-zinc-100 rounded-full flex items-center justify-center text-zinc-600 font-bold uppercase">
+                      {otherName.substring(0, 2)}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-bold text-[15px] text-zinc-900">{otherName}</h3>
+                      <p className="text-[12px] text-primary-600 font-medium">Connected</p>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <h3 className="font-bold text-[15px] text-zinc-900">{conn.toFamilyName}</h3>
-                    <p className="text-[12px] text-primary-600 font-medium">Connected</p>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

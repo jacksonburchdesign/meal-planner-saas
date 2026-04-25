@@ -41,7 +41,13 @@ const cheerio = __importStar(require("cheerio"));
  */
 async function scrapeRecipeTextAndImage(url) {
     try {
-        const res = await fetch(url);
+        const res = await fetch(url, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.5',
+            }
+        });
         const html = await res.text();
         const $ = cheerio.load(html);
         // Extract OpenGraph Image
@@ -62,7 +68,13 @@ async function scrapeRecipeTextAndImage(url) {
 async function extractPinterestBoardLinks(boardUrl) {
     var _a, _b;
     try {
-        const res = await fetch(boardUrl);
+        const res = await fetch(boardUrl, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.5',
+            }
+        });
         const html = await res.text();
         // 1. Try to parse the modern __PWS_INITIAL_PROPS__ JSON payload
         let rawUrls = [];

@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import { collection, query, where, onSnapshot, orderBy, limit, doc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, orderBy, limit, doc, or } from 'firebase/firestore';
 import { db } from '../tenant_app/services/firebase/config';
 import { useTheme } from './ThemeContext';
 import { useAuth } from '../tenant_app/contexts/AuthContext';
@@ -130,7 +130,13 @@ export function TenantDataProvider({ children }: { children: ReactNode }) {
 
     // 5. Connections
     const connectionsUnsub = onSnapshot(
-      query(collection(db, 'familyConnections'), where('fromFamilyId', '==', familyId), where('status', '==', 'active')),
+      query(
+        collection(db, 'familyConnections'), 
+        or(
+          where('fromFamilyId', '==', familyId),
+          where('toFamilyId', '==', familyId)
+        )
+      ),
       (snapshot) => {
         setConnections(snapshot.docs.map(d => ({ id: d.id, ...d.data() } as FamilyConnection)));
         setConnectionsLoading(false);
