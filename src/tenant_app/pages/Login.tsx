@@ -16,13 +16,7 @@ export function Login() {
   }
 
   return (
-    <div 
-      className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
-      style={{
-        backgroundColor: '#d6eaf8',
-        backgroundImage: 'radial-gradient(ellipse at 25% 15%, #bdddf5 0%, #d6eaf8 45%, #c5dcf0 100%)',
-      }}
-    >
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-[hsl(var(--bg-app))]">
       <FloatingBackground />
 
       <motion.div 

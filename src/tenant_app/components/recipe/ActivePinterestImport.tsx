@@ -49,6 +49,19 @@ export function ActivePinterestImport() {
     return () => unsubscribe();
   }, [familyId]);
 
+  useEffect(() => {
+    if (activeImport?.status === 'done') {
+      const timer = setTimeout(async () => {
+        try {
+          await updateDoc(doc(db, 'pinterestImports', activeImport.id), { status: 'archived' });
+        } catch (e) {
+          console.error('Failed to auto-dismiss import:', e);
+        }
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [activeImport?.status, activeImport?.id]);
+
   if (!activeImport) return null;
 
   const total = activeImport.urls?.length || 0;

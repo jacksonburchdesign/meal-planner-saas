@@ -131,14 +131,14 @@ export function FamilyProfileModal({ onClose }: { onClose: () => void }) {
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-[100] flex flex-col justify-end p-0 items-center">
+    <div className="fixed inset-0 z-[100] flex flex-col justify-end md:justify-center p-0 md:p-4 items-center">
       <div 
         className="absolute inset-0 bg-zinc-900/60 backdrop-blur-sm animate-in fade-in duration-200 w-full" 
         onClick={onClose} 
       />
 
       {/* Glassmorphism Settings Modal */}
-      <div className="bg-white/90 backdrop-blur-3xl border-t border-white/40 w-full max-w-md h-[90vh] rounded-t-[32px] p-6 relative z-10 animate-in slide-in-from-bottom-8 duration-200 shadow-2xl flex flex-col pb-[env(safe-area-inset-bottom)] overflow-hidden">
+      <div className="bg-white/90 backdrop-blur-3xl border-t md:border border-white/40 w-full max-w-md h-[90vh] md:h-auto md:max-h-[90vh] rounded-t-[32px] md:rounded-[32px] p-6 relative z-10 animate-in slide-in-from-bottom-8 duration-200 shadow-2xl flex flex-col pb-[calc(env(safe-area-inset-bottom)+1.5rem)] md:pb-6 overflow-hidden">
         
         {/* Loading Spinner Overlay for Icon Generation */}
         {iconGenerating && (

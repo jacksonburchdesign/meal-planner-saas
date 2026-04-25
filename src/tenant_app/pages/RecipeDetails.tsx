@@ -247,7 +247,7 @@ export function RecipeDetails() {
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-zinc-900/95 via-zinc-900/40 to-transparent print:hidden" />
                 
-                <button onClick={prepHero} className="absolute top-4 right-4 z-50 mt-[env(safe-area-inset-top)] p-2.5 bg-white/30 hover:bg-white/90 text-white hover:text-zinc-900 backdrop-blur-md rounded-full transition-all shadow-sm opacity-100 focus:opacity-100 lg:opacity-0 lg:group-hover:opacity-100 print:hidden">
+                <button onClick={prepHero} className="absolute top-20 right-4 z-50 mt-[env(safe-area-inset-top)] p-2.5 bg-white/30 hover:bg-white/90 text-white hover:text-zinc-900 backdrop-blur-md rounded-full transition-all shadow-sm opacity-100 focus:opacity-100 lg:opacity-0 lg:group-hover:opacity-100 print:hidden">
                    <EditPencil className="w-5 h-5 stroke-[2.5]" />
                 </button>
 
@@ -314,17 +314,17 @@ export function RecipeDetails() {
                       </div>
                     </div>
                   </div>
-                  <div className="flex justify-between items-center pt-2">
+                  <div className="flex flex-col-reverse sm:flex-row justify-between items-stretch sm:items-center pt-6 gap-3">
                      <button 
                        onClick={handleDelete} 
                        disabled={deleting} 
-                       className="flex items-center gap-1.5 px-4 py-2 text-danger-500 hover:bg-danger-50 rounded-xl transition-colors font-bold text-[14px]"
+                       className="flex items-center justify-center sm:justify-start gap-1.5 px-4 py-3 sm:py-2 text-danger-500 hover:bg-danger-50 bg-danger-50/50 sm:bg-transparent rounded-xl transition-colors font-bold text-[14px]"
                      >
                        <Trash className="w-4 h-4 stroke-[2.5]" /> {deleting ? 'Deleting...' : 'Delete Recipe'}
                      </button>
-                     <div className="flex gap-2">
-                        <Button variant="outline" onClick={() => setIsEditingHero(false)} className="px-6">Cancel</Button>
-                        <Button variant="primary" onClick={saveHero} disabled={savingSection === 'hero'} className="px-6 flex items-center gap-1 bg-primary-500 hover:bg-primary-600 border-primary-500 shadow-primary-500/20 text-white">
+                     <div className="flex flex-col sm:flex-row gap-2">
+                        <Button variant="outline" onClick={() => setIsEditingHero(false)} className="px-6 h-[48px] sm:h-auto">Cancel</Button>
+                        <Button variant="primary" onClick={saveHero} disabled={savingSection === 'hero'} className="px-6 h-[48px] sm:h-auto flex items-center justify-center gap-1 bg-primary-500 hover:bg-primary-600 border-primary-500 shadow-primary-500/20 text-white">
                            <Check className="w-5 h-5 stroke-[3]" /> Save Settings
                         </Button>
                      </div>
