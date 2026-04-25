@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, Link } from 'react-router-dom';
 import { generatePngLogoUrl } from '../../tenant_app/utils/logoUtils';
 import { createFamilyProfile, createUserRecord } from '../../services/firestore';
 import { auth, db } from '../../config/firebase';
@@ -59,12 +59,21 @@ export default function Onboarding() {
   const [selectedIconName, setSelectedIconName] = useState('Home');
   const [logoType, setLogoType] = useState<'icon'|'letters'>('icon');
   const [logoLetters, setLogoLetters] = useState('');
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isSlugAvailable, setIsSlugAvailable] = useState<boolean | null>(null);
   const [checkingSlug, setCheckingSlug] = useState(false);
 
   // Connect to Layout Phone Mockup
   const { setMockupState } = useOutletContext<{ setMockupState: any }>();
+  
+  const handleMouseMove = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    e.currentTarget.style.setProperty('--x', `${x}px`);
+    e.currentTarget.style.setProperty('--y', `${y}px`);
+  };
   
   useEffect(() => {
     if (setMockupState) {
@@ -524,6 +533,8 @@ export default function Onboarding() {
                 <button
                   type="submit"
                   disabled={!familyName || !adults || !children || !primaryColor || !isSlugAvailable || checkingSlug}
+                  onMouseMove={handleMouseMove}
+                  className="glow-button"
                   style={{
                     padding: '16px 38px',
                     borderRadius: '100px',
@@ -538,7 +549,7 @@ export default function Onboarding() {
                     boxShadow: (!familyName || !adults || !children || !primaryColor || !isSlugAvailable || checkingSlug) ? 'none' : '0 8px 24px rgba(0,0,0,0.15)',
                   }}
                 >
-                  Continue →
+                  <span>Continue →</span>
                 </button>
               </div>
             </motion.form>
@@ -552,7 +563,7 @@ export default function Onboarding() {
               style={{
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '22px',
+                gap: '12px',
                 width: '100%',
                 maxWidth: '440px',
                 flexShrink: 0,
@@ -560,7 +571,7 @@ export default function Onboarding() {
             >
               {/* Authorized Emails */}
               <div>
-                <label className="flex items-center gap-1.5" style={{ fontSize: '1.05rem', fontWeight: 700, color: 'hsl(var(--text-primary))', marginBottom: '8px', paddingLeft: '4px', fontFamily: '"League Spartan", system-ui, sans-serif', letterSpacing: '-0.01em' }}>
+                <label className="flex items-center gap-1.5" style={{ fontSize: '1.05rem', fontWeight: 700, color: 'hsl(var(--text-primary))', marginBottom: '4px', paddingLeft: '4px', fontFamily: '"League Spartan", system-ui, sans-serif', letterSpacing: '-0.01em' }}>
                   Authorized Member Emails
                   <button type="button" tabIndex={0} className="relative group flex items-center justify-center translate-y-[-1.5px] outline-none border-none bg-transparent p-0 m-0">
                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-400 cursor-help group-hover:text-[hsl(var(--primary))] group-focus:text-[hsl(var(--primary))] transition-colors">
@@ -574,7 +585,7 @@ export default function Onboarding() {
                      </div>
                   </button>
                 </label>
-                <div style={{ ...glassInputStyle, padding: '12px', display: 'flex', flexDirection: 'column', gap: 12, cursor: 'text' }} onClick={() => document.getElementById('email-input')?.focus()}>
+                <div style={{ ...glassInputStyle, padding: '8px 12px', display: 'flex', flexDirection: 'column', gap: 8, cursor: 'text' }} onClick={() => document.getElementById('email-input')?.focus()}>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                     {authorizedEmails.map(email => (
                       <div key={email} style={{ display: 'flex', alignItems: 'center', gap: 6, backgroundColor: 'rgba(255,255,255,0.7)', padding: '4px 10px', borderRadius: 100, fontSize: '0.85rem', fontWeight: 600, color: 'hsl(var(--text-primary))' }}>
@@ -596,21 +607,21 @@ export default function Onboarding() {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '1.05rem', fontWeight: 700, color: 'hsl(var(--text-secondary))', marginBottom: '8px', paddingLeft: '4px', fontFamily: '"League Spartan", system-ui, sans-serif', letterSpacing: '-0.01em' }}>
+                <label style={{ display: 'block', fontSize: '1.05rem', fontWeight: 700, color: 'hsl(var(--text-secondary))', marginBottom: '4px', paddingLeft: '4px', fontFamily: '"League Spartan", system-ui, sans-serif', letterSpacing: '-0.01em' }}>
                   Design App Icon
                 </label>
-                <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '4px' }}>
                   <button
                     type="button"
                     onClick={() => setLogoType('icon')}
-                    style={{ flex: 1, padding: '8px', borderRadius: '10px', fontSize: '0.95rem', fontWeight: 700, cursor: 'pointer', border: '1px solid', borderColor: logoType === 'icon' ? primaryColor : 'rgba(0,0,0,0.05)', backgroundColor: logoType === 'icon' ? `${primaryColor}20` : 'white', color: logoType === 'icon' ? primaryColor : 'hsl(var(--text-secondary))', transition: 'all 0.2s' }}
+                    style={{ flex: 1, padding: '6px', borderRadius: '10px', fontSize: '0.95rem', fontWeight: 700, cursor: 'pointer', border: '1px solid', borderColor: logoType === 'icon' ? primaryColor : 'rgba(0,0,0,0.05)', backgroundColor: logoType === 'icon' ? `${primaryColor}20` : 'white', color: logoType === 'icon' ? primaryColor : 'hsl(var(--text-secondary))', transition: 'all 0.2s' }}
                   >
                     Icon
                   </button>
                   <button
                     type="button"
                     onClick={() => setLogoType('letters')}
-                    style={{ flex: 1, padding: '8px', borderRadius: '10px', fontSize: '0.95rem', fontWeight: 700, cursor: 'pointer', border: '1px solid', borderColor: logoType === 'letters' ? primaryColor : 'rgba(0,0,0,0.05)', backgroundColor: logoType === 'letters' ? `${primaryColor}20` : 'white', color: logoType === 'letters' ? primaryColor : 'hsl(var(--text-secondary))', transition: 'all 0.2s' }}
+                    style={{ flex: 1, padding: '6px', borderRadius: '10px', fontSize: '0.95rem', fontWeight: 700, cursor: 'pointer', border: '1px solid', borderColor: logoType === 'letters' ? primaryColor : 'rgba(0,0,0,0.05)', backgroundColor: logoType === 'letters' ? `${primaryColor}20` : 'white', color: logoType === 'letters' ? primaryColor : 'hsl(var(--text-secondary))', transition: 'all 0.2s' }}
                   >
                     Letters
                   </button>
@@ -620,14 +631,14 @@ export default function Onboarding() {
                   display: 'flex', 
                   alignItems: 'center', 
                   gap: 16,
-                  padding: '16px',
+                  padding: '10px',
                   borderRadius: '16px',
                   border: 'none',
                   backgroundColor: 'white',
                   boxShadow: '0 8px 30px rgba(0,0,0,0.04), 0 0 0 1px rgba(255,255,255,0.6)',
                 }}>
                   {logoType === 'icon' ? (
-                    <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 8, maxHeight: 110, overflowY: 'auto', paddingRight: 4 }}>
+                    <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 8, maxHeight: 90, overflowY: 'auto', paddingRight: 4 }}>
                       {ICON_OPTIONS.map((opt) => (
                         <div 
                           key={opt.name} 
@@ -664,30 +675,46 @@ export default function Onboarding() {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 12 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 6 }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: '0.85rem', color: 'hsl(var(--text-secondary))', padding: '0 4px' }}>
+                  <input 
+                    type="checkbox" 
+                    checked={acceptedTerms}
+                    onChange={(e) => setAcceptedTerms(e.target.checked)}
+                    style={{ cursor: 'pointer', accentColor: 'hsl(var(--cta-bg))', width: 16, height: 16 }}
+                  />
+                  <span>
+                    I accept the <Link to="/terms" style={{ color: 'hsl(var(--cta-bg))', textDecoration: 'underline', fontWeight: 600 }} target="_blank">Terms and Conditions</Link>
+                  </span>
+                </label>
+
                 <button
                   type="button"
                   onClick={handleStripeCheckout}
-                  disabled={loading}
+                  disabled={loading || !acceptedTerms}
+                  className="glow-button"
+                  onMouseMove={(e) => {
+                    handleMouseMove(e);
+                  }}
                   onMouseEnter={(e) => {
-                    if (!loading) (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'hsl(var(--cta-hover))';
+                    if (!loading && acceptedTerms) (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'hsl(var(--cta-hover))';
                   }}
                   onMouseLeave={(e) => {
-                    if (!loading) (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'hsl(var(--cta-bg))';
+                    if (!loading && acceptedTerms) (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'hsl(var(--cta-bg))';
                   }}
                   style={{
                     width: '100%',
-                    padding: '16px',
+                    padding: '12px',
                     borderRadius: '100px',
                     border: '1px solid rgba(255,255,255,0.1)',
-                    backgroundColor: loading ? 'hsl(var(--cta-bg) / 0.6)' : 'hsl(var(--cta-bg))',
+                    backgroundColor: (loading || !acceptedTerms) ? 'hsl(var(--cta-bg) / 0.6)' : 'hsl(var(--cta-bg))',
                     color: '#fff',
                     fontSize: '1.2rem',
                     fontWeight: 700,
                     fontFamily: '"Inter", system-ui, sans-serif',
-                    cursor: loading ? 'not-allowed' : 'pointer',
+                    cursor: (loading || !acceptedTerms) ? 'not-allowed' : 'pointer',
                     transition: 'all 0.2s',
-                    boxShadow: loading ? 'none' : '0 12px 32px hsl(var(--cta-bg) / 0.4)',
+                    boxShadow: (loading || !acceptedTerms) ? 'none' : '0 12px 32px hsl(var(--cta-bg) / 0.4)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -695,11 +722,11 @@ export default function Onboarding() {
                   }}
                 >
                   {loading ? (
-                    'Securing Subscription...'
+                    <span>Securing Subscription...</span>
                   ) : (
-                    <>
+                    <span>
                       Pay with Stripe & Launch
-                    </>
+                    </span>
                   )}
                 </button>
                 <button
@@ -708,7 +735,7 @@ export default function Onboarding() {
                   disabled={loading}
                   style={{
                     width: '100%',
-                    padding: '12px',
+                    padding: '8px',
                     borderRadius: '100px',
                     border: 'none',
                     backgroundColor: 'transparent',

@@ -71,6 +71,7 @@ export interface Recipe {
   id?: string;
   familyId: string;
   title: string;
+  cookTime?: string;
   ingredients: string[];
   instructions: string[];
   imageUrl?: string;

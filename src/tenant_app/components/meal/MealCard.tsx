@@ -1,7 +1,7 @@
 import { useRecipe } from '../../hooks';
 import { Card, CardContent, Badge, Button } from '../common';
 import type { PlannedMeal } from '../../types';
-import { Check, Xmark, Refresh, Hourglass, Plus } from 'iconoir-react';
+import { Check, Xmark, Refresh, Hourglass, Plus, Clock } from 'iconoir-react';
 import { useNavigate } from 'react-router-dom';
 
 function MiniSideRecipeCard({ sideId }: { sideId: string }) {
@@ -25,7 +25,10 @@ function MiniSideRecipeCard({ sideId }: { sideId: string }) {
       </div>
       <div className="flex-1 min-w-0 pr-2">
         <h4 className="text-[13px] font-bold text-zinc-900 truncate leading-tight">{recipe.title}</h4>
-        <p className="text-[11px] text-zinc-400 uppercase tracking-widest font-bold">Side Dish</p>
+        <p className="text-[11px] text-zinc-400 uppercase tracking-widest font-bold flex items-center gap-2">
+           Side Dish
+           {recipe.cookTime && <span className="normal-case flex items-center gap-0.5 text-zinc-500 tracking-normal"><Clock className="w-3 h-3 stroke-[2.5]" /> {recipe.cookTime}</span>}
+        </p>
       </div>
     </div>
   );
@@ -79,6 +82,11 @@ export function MealCard({ meal, dayNumber, onStatusChange, onAddSide, onSwap }:
                  <span className="text-[12px] bg-danger-50 text-danger-700 px-2 rounded font-bold border border-danger-200/50">Indulgent</span>
              )}
              <span className="text-xs font-bold text-zinc-400 tracking-wider uppercase">{recipe.category}</span>
+             {recipe.cookTime && (
+                <span className="text-xs font-bold text-zinc-500 flex items-center gap-0.5">
+                   <Clock className="w-3.5 h-3.5 stroke-[2.5] text-zinc-400" /> {recipe.cookTime}
+                </span>
+             )}
           </div>
           <h3 className="text-[17px] leading-tight font-bold text-zinc-900 tracking-tight pr-2">{recipe.title}</h3>
         </div>

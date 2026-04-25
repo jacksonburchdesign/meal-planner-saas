@@ -1,8 +1,8 @@
 import { PageWrapper } from '../components/layout/PageWrapper';
 import { MealCard } from '../components/meal';
 import { useCurrentWeeklyMeals, useRecipes } from '../hooks';
-import { Button } from '../components/common';
-import { Calendar, Refresh, LogOut, Xmark, Plus, User } from 'iconoir-react';
+import { Button, NotificationBell } from '../components/common';
+import { Calendar, Refresh, LogOut, Xmark, User, Plus } from 'iconoir-react';
 import { httpsCallable } from 'firebase/functions';
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -15,7 +15,7 @@ import type { PlannedMeal } from '../types';
 import { useTheme } from '../../context/ThemeContext';
 
 export function Home() {
-  const { currentPlan, loading } = useCurrentWeeklyMeals();
+  const { currentPlan, nextPlan, loading } = useCurrentWeeklyMeals();
   const { recipes } = useRecipes();
   const [generating, setGenerating] = useState(false);
   const [addingSideTo, setAddingSideTo] = useState<string | null>(null);
@@ -24,11 +24,11 @@ export function Home() {
   const { settings } = useFamilySettings();
   const { familyId } = useTheme();
 
-  const handleGeneratePlan = async () => {
+  const handleGeneratePlan = async (isNextWeek = false) => {
     setGenerating(true);
     try {
       const generatePlan = httpsCallable(functions, 'generateWeeklyPlan');
-      await generatePlan();
+      await generatePlan({ isNextWeek });
     } catch (error) {
       console.error(error);
       alert("Failed to generate plan");
@@ -93,6 +93,7 @@ export function Home() {
       title={settings.familyName || "This Week"}
       action={
         <div className="flex items-center gap-1">
+          <NotificationBell />
           <button onClick={() => setIsProfileOpen(true)} className="flex items-center text-zinc-400 hover:text-zinc-900 transition-colors p-2 rounded-full hover:bg-zinc-100" title="Family Profile">
              <User className="w-5 h-5 stroke-[2.5]" />
           </button>
@@ -110,7 +111,7 @@ export function Home() {
             </div>
             <h2 className="text-xl font-bold text-zinc-900 mb-2 tracking-tight">No Meal Plan</h2>
             <p className="text-[15px] font-medium text-zinc-500 mb-6 max-w-[240px] leading-relaxed">Let's build a delicious week for the family based on what's available.</p>
-            <Button onClick={handleGeneratePlan} disabled={generating} fullWidth>
+            <Button onClick={() => handleGeneratePlan(false)} disabled={generating} fullWidth>
               {generating ? "Planning..." : "Generate Weekly Plan"}
             </Button>
           </div>
@@ -132,7 +133,7 @@ export function Home() {
                 
                 try {
                   await deleteDoc(doc(db, 'weeklyMeals', currentPlan.id!));
-                  await handleGeneratePlan();
+                  await handleGeneratePlan(false);
                 } catch (error) {
                   console.error("Failed to regenerate:", error);
                   alert("Failed to regenerate plan.");
@@ -144,6 +145,53 @@ export function Home() {
             >
               {generating ? "Regenerating..." : "Regenerate Plan"}
             </Button>
+          </div>
+        )}
+
+        {/* Next 7 Days Section */}
+        {currentPlan && currentPlan.meals.length > 0 && (
+          <div className="pt-8 border-t border-zinc-100">
+            <h2 className="text-[20px] font-bold text-zinc-900 mb-4 tracking-tight">Next 7 Days</h2>
+            
+            {!nextPlan || nextPlan.meals.length === 0 ? (
+              <div className="bg-zinc-50 rounded-3xl border border-dashed border-zinc-200 p-6 flex flex-col items-center">
+                <p className="text-[14px] font-medium text-zinc-500 mb-4 text-center">Plan ahead to buy ingredients early.</p>
+                <Button onClick={() => handleGeneratePlan(true)} disabled={generating} variant="outline" className="bg-white">
+                  {generating ? "Planning..." : "Generate Next 7 Days"}
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="space-y-px bg-zinc-100 rounded-3xl overflow-hidden border border-zinc-100 shadow-sm opacity-80">
+                  {nextPlan.meals.map((meal: PlannedMeal, idx: number) => (
+                    <div key={meal.id} className={`${idx !== nextPlan.meals.length-1 ? 'mb-px' : ''}`}>
+                       <MealCard meal={meal} dayNumber={idx + 1} onStatusChange={handleStatusChange} onAddSide={setAddingSideTo} />
+                    </div>
+                  ))}
+                </div>
+                
+                <Button 
+                  variant="outline" 
+                  onClick={async () => {
+                    const confirmed = window.confirm("Are you sure you want to regenerate next week's plan?");
+                    if (!confirmed) return;
+                    
+                    try {
+                      await deleteDoc(doc(db, 'weeklyMeals', nextPlan.id!));
+                      await handleGeneratePlan(true);
+                    } catch (error) {
+                      console.error("Failed to regenerate:", error);
+                      alert("Failed to regenerate plan.");
+                    }
+                  }} 
+                  disabled={generating} 
+                  fullWidth
+                  className="mt-6 border-danger-200 text-danger-600 hover:bg-danger-50 hover:border-danger-300 transition-colors"
+                >
+                  {generating ? "Regenerating..." : "Regenerate Next 7 Days"}
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </div>

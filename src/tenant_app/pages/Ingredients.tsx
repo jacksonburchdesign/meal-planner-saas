@@ -2,18 +2,18 @@ import { useMemo, useState } from 'react';
 import { PageWrapper } from '../components/layout/PageWrapper';
 import { useCurrentWeeklyMeals, useRecipes } from '../hooks';
 import { Check } from 'iconoir-react';
-import type { PlannedMeal } from '../types';
+import type { PlannedMeal, WeeklyMealPlan } from '../types';
 
 export function Ingredients() {
-  const { currentPlan, loading: loadingPlan } = useCurrentWeeklyMeals();
+  const { currentPlan, nextPlan, loading: loadingPlan } = useCurrentWeeklyMeals();
   const { recipes, loading: loadingRecipes } = useRecipes();
   const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
 
-  const shoppingList = useMemo(() => {
-    if (!currentPlan || recipes.length === 0) return [];
+  const buildShoppingList = (plan: WeeklyMealPlan | null) => {
+    if (!plan || recipes.length === 0) return [];
     
     // Get all recipeIds and sideIds from active meals
-    const activeMeals = currentPlan.meals.filter((m: PlannedMeal) => m.status === 'Pending' || m.status === 'Made');
+    const activeMeals = plan.meals.filter((m: PlannedMeal) => m.status === 'Pending' || m.status === 'Made');
     const allRecipeIds = activeMeals.flatMap((m: PlannedMeal) => [m.recipeId, ...(m.sideIds || [])]);
       
     const activeRecipes = recipes.filter(r => allRecipeIds.includes(r.id!));
@@ -25,11 +25,6 @@ export function Ingredients() {
     }> = {};
     
     activeRecipes.forEach(recipe => {
-      // Also grab sides if needed, but currentPlan.meals only lists entry recipeIds if they don't have a sideIds array?
-      // Wait, in Home.tsx we see currentPlan.meals have recipeId AND sideIds.
-      // activeRecipes currently only maps: m => m.recipeId.
-      // Let's make sure we include side recipes too so the shopping list is accurate.
-      // We will do that in the activeRecipes filter update below.
       recipe.ingredients?.forEach(ing => {
         const lowerName = (ing.name || 'Unnamed Ingredient').toLowerCase().trim();
         const displayUnit = (ing.unit || '').trim();
@@ -65,7 +60,13 @@ export function Ingredients() {
         recipeCount: data.recipeIds.size
       };
     }).sort((a, b) => a.name.localeCompare(b.name));
-  }, [currentPlan, recipes]);
+  };
+
+  const shoppingListCurrent = useMemo(() => buildShoppingList(currentPlan), [currentPlan, recipes]);
+  const shoppingListNext = useMemo(() => buildShoppingList(nextPlan), [nextPlan, recipes]);
+
+  const [activeTab, setActiveTab] = useState<'current' | 'next'>('current');
+  const activeShoppingList = activeTab === 'current' ? shoppingListCurrent : shoppingListNext;
 
   const toggleCheck = (key: string) => {
     setCheckedItems(prev => ({ ...prev, [key]: !prev[key] }));
@@ -74,15 +75,32 @@ export function Ingredients() {
   return (
     <PageWrapper title="Shopping List">
       <div className="space-y-6 animate-in slide-in-from-bottom-2 fade-in duration-300">
+        {nextPlan && (
+          <div className="flex bg-zinc-100 p-1 rounded-2xl mb-6">
+            <button 
+              className={`flex-1 py-2 text-[14px] font-bold rounded-xl transition-all ${activeTab === 'current' ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-500 hover:text-zinc-700'}`}
+              onClick={() => setActiveTab('current')}
+            >
+              This Week
+            </button>
+            <button 
+              className={`flex-1 py-2 text-[14px] font-bold rounded-xl transition-all ${activeTab === 'next' ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-500 hover:text-zinc-700'}`}
+              onClick={() => setActiveTab('next')}
+            >
+              Next 7 Days
+            </button>
+          </div>
+        )}
+
         {loadingPlan || loadingRecipes ? (
            <p className="text-zinc-500 text-center font-medium py-8">Calculating list...</p>
-        ) : shoppingList.length === 0 ? (
+        ) : activeShoppingList.length === 0 ? (
            <div className="text-center py-12">
-             <p className="text-zinc-500 font-medium">Your shopping list is empty.</p>
+             <p className="text-zinc-500 font-medium">Your shopping list for this period is empty.</p>
            </div>
         ) : (
           <div className="bg-white rounded-3xl p-2 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.06)] border border-zinc-100">
-            {shoppingList.map((item) => {
+            {activeShoppingList.map((item) => {
               const isChecked = !!checkedItems[item.key];
               return (
                 <div 

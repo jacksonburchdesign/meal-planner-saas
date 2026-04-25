@@ -6,6 +6,7 @@ import { AllRecipes } from './pages/AllRecipes';
 import { History } from './pages/History';
 import { Ingredients } from './pages/Ingredients';
 import { RecipeDetails } from './pages/RecipeDetails';
+import { Connections } from './pages/Connections';
 import { Login } from './pages/Login';
 import { Success } from './pages/Success';
 import { PwaPrompt } from './components/pwa/PwaPrompt';
@@ -44,6 +45,7 @@ function App() {
             <Route path="/recipes/:id" element={<ProtectedRoute><RecipeDetails /></ProtectedRoute>} />
             <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
             <Route path="/ingredients" element={<ProtectedRoute><Ingredients /></ProtectedRoute>} />
+            <Route path="/connections" element={<ProtectedRoute><Connections /></ProtectedRoute>} />
           </Routes>
           <PwaPrompt />
         </AppThemeWrapper>

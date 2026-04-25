@@ -15,6 +15,10 @@ export interface FamilySettings {
     adults: number;
     children: number;
   };
+  mealPreferences: {
+    healthyMealsPerWeek: number;
+    indulgentMealsPerWeek: number;
+  };
 }
 
 const DEFAULT_SETTINGS: FamilySettings = {
@@ -22,7 +26,8 @@ const DEFAULT_SETTINGS: FamilySettings = {
   themeColor: '#0097b2', // Using hex so the color-picker does not warn during initial loading frame
   iconUrl: '/meal-planner-logo.svg',
   iconName: 'Home',
-  demographics: { adults: 2, children: 0 }
+  demographics: { adults: 2, children: 0 },
+  mealPreferences: { healthyMealsPerWeek: 5, indulgentMealsPerWeek: 2 }
 };
 
 const THEME_MAP: Record<SupportedThemeColor, Record<string, string>> = {
@@ -111,7 +116,11 @@ export function useFamilySettings() {
           demographics: data.demographics ? {
              adults: data.demographics.adults !== undefined ? Number(data.demographics.adults) : DEFAULT_SETTINGS.demographics.adults,
              children: data.demographics.children !== undefined ? Number(data.demographics.children) : DEFAULT_SETTINGS.demographics.children,
-          } : DEFAULT_SETTINGS.demographics
+          } : DEFAULT_SETTINGS.demographics,
+          mealPreferences: data.mealPreferences ? {
+             healthyMealsPerWeek: data.mealPreferences.healthyMealsPerWeek !== undefined ? Number(data.mealPreferences.healthyMealsPerWeek) : DEFAULT_SETTINGS.mealPreferences.healthyMealsPerWeek,
+             indulgentMealsPerWeek: data.mealPreferences.indulgentMealsPerWeek !== undefined ? Number(data.mealPreferences.indulgentMealsPerWeek) : DEFAULT_SETTINGS.mealPreferences.indulgentMealsPerWeek,
+          } : DEFAULT_SETTINGS.mealPreferences
         };
         setSettings(merged);
         applyThemeVariables(merged.themeColor);
@@ -145,6 +154,7 @@ export function useFamilySettings() {
       if (updates.iconUrl !== undefined) dbUpdates['theme.iconUrl'] = updates.iconUrl;
       if (updates.iconName !== undefined) dbUpdates['theme.iconName'] = updates.iconName;
       if (updates.demographics !== undefined) dbUpdates.demographics = updates.demographics;
+      if (updates.mealPreferences !== undefined) dbUpdates.mealPreferences = updates.mealPreferences;
       
       await updateDoc(doc(db, 'families', familyDocId), dbUpdates);
     }

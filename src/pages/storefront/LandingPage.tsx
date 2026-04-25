@@ -7,10 +7,19 @@ import { motion } from 'framer-motion';
 function CtaButton({ onClick }: { onClick: () => void }) {
   const [hovered, setHovered] = useState(false);
 
+  const handleMouseMove = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    e.currentTarget.style.setProperty('--x', `${x}px`);
+    e.currentTarget.style.setProperty('--y', `${y}px`);
+  };
+
   return (
     <motion.button
       id="build-your-app-cta"
       onClick={onClick}
+      onMouseMove={handleMouseMove}
       onHoverStart={() => setHovered(true)}
       onHoverEnd={() => setHovered(false)}
       animate={{
@@ -22,9 +31,9 @@ function CtaButton({ onClick }: { onClick: () => void }) {
       }}
       whileTap={{ scale: 0.97 }}
       transition={{ duration: 0.2 }}
-      className="flex items-center gap-2.5 self-start px-9 py-4 rounded-full border-none text-white text-xl font-bold font-['League_Spartan'] cursor-pointer tracking-wide"
+      className="glow-button flex items-center gap-2.5 self-start px-9 py-4 rounded-full border-none text-white text-xl font-bold font-['League_Spartan'] cursor-pointer tracking-wide"
     >
-      Build My App
+      <span>Build My App</span>
       <motion.svg 
         width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
         animate={{ x: [0, 5, 0, 5, 0, 5, 0, 0] }}

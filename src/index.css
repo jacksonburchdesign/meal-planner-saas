@@ -74,3 +74,34 @@
     @apply min-h-[44px];
   }
 }
+
+@layer utilities {
+  .glow-button {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .glow-button::before {
+    content: '';
+    position: absolute;
+    top: var(--y, 50%);
+    left: var(--x, 50%);
+    width: var(--glow-size, 120px);
+    height: var(--glow-size, 120px);
+    background: radial-gradient(circle closest-side, var(--glow-color, rgba(144, 238, 144, 0.25)), transparent);
+    transform: translate(-50%, -50%);
+    transition: opacity 0.2s ease;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .glow-button:hover::before {
+    opacity: 1;
+  }
+
+  .glow-button > * {
+    position: relative;
+    z-index: 1;
+  }
+}

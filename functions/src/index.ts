@@ -6,6 +6,7 @@ import cors from "cors";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import { extractRecipeFromText, extractRecipeFromImages } from "./ai";
 import { scrapeRecipeTextAndImage, extractPinterestBoardLinks } from "./scrapers";
+import { generateWeeklyPlanWithAI } from "./ai-planner";
 
 // Initialize Firebase Admin
 admin.initializeApp();
@@ -312,4 +313,209 @@ export const processPinterestImport = onDocumentCreated('pinterestImports/{impor
     }
     return null;
   });
+
+// ==========================================
+// GENERATE WEEKLY PLAN (AI)
+// ==========================================
+export const generateWeeklyPlan = functions.https.onCall(async (data, context) => {
+  if (!context.auth) throw new functions.https.HttpsError('unauthenticated', 'Must be logged in');
+  
+  const uid = context.auth.uid;
+  const userDoc = await admin.firestore().collection('users').doc(uid).get();
+  const familyId = userDoc.data()?.familyId;
+  if (!familyId) throw new functions.https.HttpsError('failed-precondition', 'No family attached');
+
+  const { isNextWeek } = data || {};
+
+  const familyDoc = await admin.firestore().collection('families').doc(familyId).get();
+  const healthyTarget = familyDoc.data()?.mealPreferences?.healthyMealsPerWeek ?? 5;
+  const indulgentTarget = familyDoc.data()?.mealPreferences?.indulgentMealsPerWeek ?? 2;
+
+  const recipesSnap = await admin.firestore().collection('recipes').where('familyId', '==', familyId).get();
+  const allRecipes = recipesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+  
+  if (allRecipes.length < 7) {
+     throw new functions.https.HttpsError('failed-precondition', 'You need at least 7 recipes in your library to generate a plan.');
+  }
+
+  const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
+  const historySnap = await admin.firestore().collection('mealHistory')
+    .where('familyId', '==', familyId)
+    .where('date', '>=', thirtyDaysAgo)
+    .get();
+  const historyRecipeIds = historySnap.docs.map(d => d.data().recipeId).filter(id => !!id);
+
+  let currentPlanRecipeIds: string[] = [];
+  let startDate = Date.now();
+  
+  const weeklyPlansSnap = await admin.firestore().collection('weeklyMeals')
+    .where('familyId', '==', familyId)
+    .orderBy('startDate', 'desc')
+    .limit(2)
+    .get();
+    
+  if (!weeklyPlansSnap.empty) {
+     if (isNextWeek) {
+        const currentPlan = weeklyPlansSnap.docs[0].data();
+        currentPlanRecipeIds = currentPlan.meals.map((m: any) => m.recipeId);
+        startDate = currentPlan.startDate + (7 * 24 * 60 * 60 * 1000);
+     } else {
+        startDate = Date.now();
+     }
+  }
+
+  const selectedIds = await generateWeeklyPlanWithAI(allRecipes, historyRecipeIds, currentPlanRecipeIds, healthyTarget, indulgentTarget);
+
+  const newMeals = selectedIds.map((id, index) => ({
+    id: `meal_${Date.now()}_${index}`,
+    recipeId: id,
+    status: 'Pending',
+    dayOfWeek: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][index],
+    date: startDate + (index * 24 * 60 * 60 * 1000)
+  }));
+
+  const newPlan = {
+    familyId,
+    startDate,
+    endDate: startDate + (7 * 24 * 60 * 60 * 1000),
+    meals: newMeals,
+    createdAt: Date.now()
+  };
+
+  const planRef = await admin.firestore().collection('weeklyMeals').add(newPlan);
+  return { success: true, planId: planRef.id };
+});
+
+// ==========================================
+// FAMILY CONNECTIONS
+// ==========================================
+export const sendConnectionRequest = functions.https.onCall(async (data, context) => {
+  if (!context.auth) throw new functions.https.HttpsError('unauthenticated', 'Must be logged in');
+  
+  const { email } = data;
+  if (!email) throw new functions.https.HttpsError('invalid-argument', 'Email is required');
+
+  const senderDoc = await admin.firestore().collection('users').doc(context.auth.uid).get();
+  const fromFamilyId = senderDoc.data()?.familyId;
+  const senderEmail = senderDoc.data()?.email;
+  
+  if (!fromFamilyId) throw new functions.https.HttpsError('failed-precondition', 'Sender has no family attached');
+
+  const fromFamilyDoc = await admin.firestore().collection('families').doc(fromFamilyId).get();
+  const fromFamilyName = fromFamilyDoc.data()?.familyName || senderEmail || 'Someone';
+
+  // Find user by email
+  const targetUserSnap = await admin.firestore().collection('users').where('email', '==', email.toLowerCase().trim()).get();
+  if (targetUserSnap.empty) {
+    throw new functions.https.HttpsError('not-found', 'No user found with that email');
+  }
+
+  const targetFamilyId = targetUserSnap.docs[0].data().familyId;
+  if (!targetFamilyId) throw new functions.https.HttpsError('not-found', 'User has no family attached');
+
+  if (targetFamilyId === fromFamilyId) throw new functions.https.HttpsError('invalid-argument', 'Cannot connect to your own family');
+
+  // Check if connection already exists
+  const existingConnSnap = await admin.firestore().collection('familyConnections')
+    .where('fromFamilyId', '==', fromFamilyId)
+    .where('toFamilyId', '==', targetFamilyId)
+    .get();
+    
+  if (!existingConnSnap.empty) throw new functions.https.HttpsError('already-exists', 'Connection already exists or is pending');
+
+  const toFamilyDoc = await admin.firestore().collection('families').doc(targetFamilyId).get();
+  const toFamilyName = toFamilyDoc.data()?.familyName || email;
+
+  // Create connection doc
+  const connRef = await admin.firestore().collection('familyConnections').add({
+    fromFamilyId,
+    fromFamilyName,
+    toFamilyId: targetFamilyId,
+    toFamilyName,
+    status: 'pending',
+    createdAt: Date.now()
+  });
+
+  // Create notification for target family
+  await admin.firestore().collection('notifications').add({
+    familyId: targetFamilyId,
+    title: 'New Connection Request',
+    message: `${fromFamilyName} wants to connect with your family.`,
+    type: 'connection_request',
+    read: false,
+    createdAt: Date.now(),
+    actionData: { connectionId: connRef.id, fromFamilyId, fromFamilyName }
+  });
+
+  return { success: true };
+});
+
+export const respondToConnection = functions.https.onCall(async (data, context) => {
+  if (!context.auth) throw new functions.https.HttpsError('unauthenticated', 'Must be logged in');
+  
+  const { connectionId, accept } = data;
+  const connRef = admin.firestore().collection('familyConnections').doc(connectionId);
+  const connDoc = await connRef.get();
+  
+  if (!connDoc.exists) throw new functions.https.HttpsError('not-found', 'Connection not found');
+  
+  const userDoc = await admin.firestore().collection('users').doc(context.auth.uid).get();
+  const myFamilyId = userDoc.data()?.familyId;
+  
+  if (connDoc.data()?.toFamilyId !== myFamilyId) throw new functions.https.HttpsError('permission-denied', 'Not authorized');
+
+  if (accept) {
+    await connRef.update({ status: 'active' });
+    // Also create reverse connection for easier querying
+    await admin.firestore().collection('familyConnections').add({
+      fromFamilyId: myFamilyId,
+      fromFamilyName: connDoc.data()?.toFamilyName,
+      toFamilyId: connDoc.data()?.fromFamilyId,
+      toFamilyName: connDoc.data()?.fromFamilyName,
+      status: 'active',
+      createdAt: Date.now()
+    });
+  } else {
+    await connRef.delete();
+  }
+  return { success: true };
+});
+
+export const shareRecipe = functions.https.onCall(async (data, context) => {
+  if (!context.auth) throw new functions.https.HttpsError('unauthenticated', 'Must be logged in');
+  
+  const { recipeId, targetFamilyId } = data;
+  
+  const recipeDoc = await admin.firestore().collection('recipes').doc(recipeId).get();
+  if (!recipeDoc.exists) throw new functions.https.HttpsError('not-found', 'Recipe not found');
+  
+  const recipeData = recipeDoc.data()!;
+  
+  const senderDoc = await admin.firestore().collection('users').doc(context.auth.uid).get();
+  const fromFamilyId = senderDoc.data()?.familyId;
+  const fromFamilyDoc = await admin.firestore().collection('families').doc(fromFamilyId).get();
+  const fromFamilyName = fromFamilyDoc.data()?.familyName || 'Someone';
+
+  // Create a shared recipe inbox item
+  await admin.firestore().collection('sharedRecipes').add({
+    targetFamilyId,
+    fromFamilyId,
+    fromFamilyName,
+    recipeData: { ...recipeData, familyId: targetFamilyId, source: 'shared', createdAt: Date.now(), updatedAt: Date.now() },
+    status: 'pending',
+    createdAt: Date.now()
+  });
+
+  // Notify target family
+  await admin.firestore().collection('notifications').add({
+    familyId: targetFamilyId,
+    title: 'Recipe Shared!',
+    message: `${fromFamilyName} shared ${recipeData.title} with you.`,
+    type: 'recipe_shared',
+    read: false,
+    createdAt: Date.now()
+  });
+
+  return { success: true };
+});
 

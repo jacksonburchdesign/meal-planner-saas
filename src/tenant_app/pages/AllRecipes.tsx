@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import type { Variants } from 'framer-motion';
+import { Clock } from 'iconoir-react';
 
 // Generates a beautiful deterministic dual-tone gradient based on the recipe title using COMPLEMENTARY colors
 // Teal (#0097b2) Complement -> Coral/Red-Orange
@@ -184,6 +185,11 @@ export function AllRecipes() {
                     </div>
                     <div className="absolute bottom-0 z-20 w-full p-4 transform translate-y-1 group-hover:translate-y-0 transition-transform duration-300">
                        <h3 className="font-bold text-[14px] leading-tight text-white drop-shadow-lg line-clamp-2">{recipe.title}</h3>
+                       {recipe.cookTime && (
+                         <div className="flex items-center gap-1 mt-1 text-[11px] font-bold text-white/90 drop-shadow-md">
+                           <Clock className="w-3 h-3 stroke-[3]" /> {recipe.cookTime}
+                         </div>
+                       )}
                     </div>
                   </motion.div>
                ))}
@@ -222,6 +228,11 @@ export function AllRecipes() {
                       </div>
                       <div className="absolute bottom-0 z-20 w-full p-4 transform translate-y-1 group-hover:translate-y-0 transition-transform duration-300">
                          <h3 className="font-bold text-[14px] leading-tight text-white drop-shadow-lg line-clamp-2">{recipe.title}</h3>
+                         {recipe.cookTime && (
+                           <div className="flex items-center gap-1 mt-1 text-[11px] font-bold text-white/90 drop-shadow-md">
+                             <Clock className="w-3 h-3 stroke-[3]" /> {recipe.cookTime}
+                           </div>
+                         )}
                       </div>
                     </motion.div>
                   ))}
@@ -253,6 +264,11 @@ export function AllRecipes() {
                       </div>
                       <div className="absolute bottom-0 z-20 w-full p-4 transform translate-y-1 group-hover:translate-y-0 transition-transform duration-300">
                          <h3 className="font-bold text-[14px] leading-tight text-white drop-shadow-lg line-clamp-2">{recipe.title}</h3>
+                         {recipe.cookTime && (
+                           <div className="flex items-center gap-1 mt-1 text-[11px] font-bold text-white/90 drop-shadow-md">
+                             <Clock className="w-3 h-3 stroke-[3]" /> {recipe.cookTime}
+                           </div>
+                         )}
                       </div>
                     </motion.div>
                   ))}

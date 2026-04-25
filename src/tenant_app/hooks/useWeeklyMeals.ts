@@ -6,29 +6,41 @@ import { useTheme } from '../../context/ThemeContext';
 
 export function useCurrentWeeklyMeals() {
   const [currentPlan, setCurrentPlan] = useState<WeeklyMealPlan | null>(null);
+  const [nextPlan, setNextPlan] = useState<WeeklyMealPlan | null>(null);
   const [loading, setLoading] = useState(true);
   const { familyId } = useTheme();
 
   useEffect(() => {
     if (!familyId) return;
 
-    // Sort by start date, trying to find the active week
+    // Fetch up to 2 plans, ordered by start date descending (newest first)
     const q = query(
       collection(db, 'weeklyMeals'),
       where('familyId', '==', familyId),
       orderBy('startDate', 'desc'),
-      limit(1) // Assuming the most recent one generated is the active one for MVP simplicity
+      limit(2) 
     );
     
     const unsubscribe = onSnapshot(q, (snapshot) => {
       if (snapshot.empty) {
         setCurrentPlan(null);
+        setNextPlan(null);
       } else {
-        const doc = snapshot.docs[0];
-        setCurrentPlan({
+        const plans = snapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
-        } as WeeklyMealPlan);
+        } as WeeklyMealPlan));
+
+        // Sort ascending by start date so the older one is current, newer one is next
+        plans.sort((a, b) => a.startDate - b.startDate);
+
+        if (plans.length === 1) {
+          setCurrentPlan(plans[0]);
+          setNextPlan(null);
+        } else if (plans.length === 2) {
+          setCurrentPlan(plans[0]);
+          setNextPlan(plans[1]);
+        }
       }
       setLoading(false);
     }, (error) => {
@@ -37,7 +49,7 @@ export function useCurrentWeeklyMeals() {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [familyId]);
 
-  return { currentPlan, loading };
+  return { currentPlan, nextPlan, loading };
 }

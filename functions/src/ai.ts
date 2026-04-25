@@ -13,6 +13,7 @@ const JSON_SCHEMA = {
   type: "object",
   properties: {
     title: { type: "string" },
+    cookTime: { type: "string", description: "The total cook time or prep time for the recipe (e.g. '30 mins', '1 hour'). If none is specified, estimate it based on the recipe steps, or output a blank string." },
     category: { type: "string", enum: ["breakfast", "entrées", "sides", "desserts"] },
     isHealthy: { type: "boolean" },
     imageUrl: { type: "string", description: "The high-resolution hero image URL of the recipe." },
@@ -33,7 +34,7 @@ const JSON_SCHEMA = {
       items: { type: "string" }
     }
   },
-  required: ["title", "category", "isHealthy", "imageUrl", "ingredients", "instructions"]
+  required: ["title", "cookTime", "category", "isHealthy", "imageUrl", "ingredients", "instructions"]
 };
 
 export async function extractRecipeFromText(text: string, ogImageUrl?: string) {

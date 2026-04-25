@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Book, Clock, List } from 'iconoir-react';
+import { Home, Book, Clock, List, Group } from 'iconoir-react';
 import { ActivePinterestImport } from '../recipe/ActivePinterestImport';
 
 export function Navbar() {
@@ -8,6 +8,7 @@ export function Navbar() {
   const navItems = [
     { name: 'Hub', path: '/', icon: Home },
     { name: 'Recipes', path: '/recipes', icon: Book },
+    { name: 'Connect', path: '/connections', icon: Group },
     { name: 'History', path: '/history', icon: Clock },
     { name: 'List', path: '/ingredients', icon: List },
   ];

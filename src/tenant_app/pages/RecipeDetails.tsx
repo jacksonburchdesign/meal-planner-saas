@@ -1,13 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PageWrapper } from '../components/layout/PageWrapper';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useRecipe } from '../hooks';
-import { db, storage } from '../services/firebase/config';
-import { doc, updateDoc } from 'firebase/firestore';
+import { db, storage, functions } from '../services/firebase/config';
+import { doc, updateDoc, deleteDoc, collection, query, where, onSnapshot } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { ArrowLeft, EditPencil, Check, Plus, Xmark, CloudUpload, RefreshDouble, Printer } from 'iconoir-react';
+import { ArrowLeft, EditPencil, Check, Plus, Xmark, CloudUpload, RefreshDouble, Printer, Trash, Clock, ShareAndroid } from 'iconoir-react';
 import { Badge, Input, Button } from '../components/common';
-import type { Ingredient, RecipeCategory } from '../types';
+import type { Ingredient, RecipeCategory, FamilyConnection } from '../types';
+import { createPortal } from 'react-dom';
+import { useTheme } from '../../context/ThemeContext';
+import { httpsCallable } from 'firebase/functions';
 
 function parseIngredientString(raw: string): Ingredient {
   const parts = raw.trim().split(' ');
@@ -31,7 +34,9 @@ export function RecipeDetails() {
   const [editTitle, setEditTitle] = useState('');
   const [editCategory, setEditCategory] = useState<RecipeCategory>('entrées');
   const [editIsHealthy, setEditIsHealthy] = useState(false);
+  const [editCookTime, setEditCookTime] = useState('');
   const [editImageUrl, setEditImageUrl] = useState('');
+  const [deleting, setDeleting] = useState(false);
 
   const [isEditingIngredients, setIsEditingIngredients] = useState(false);
   const [editIngredients, setEditIngredients] = useState<string[]>([]);
@@ -40,12 +45,49 @@ export function RecipeDetails() {
   const [editInstructions, setEditInstructions] = useState<string[]>([]);
   const [savingSection, setSavingSection] = useState<string | null>(null);
 
+  // Sharing State
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [connections, setConnections] = useState<FamilyConnection[]>([]);
+  const [sharingTo, setSharingTo] = useState<string | null>(null);
+  const { familyId } = useTheme();
+
+  useEffect(() => {
+    if (!familyId || !isShareModalOpen) return;
+    
+    const qConn = query(
+      collection(db, 'familyConnections'),
+      where('fromFamilyId', '==', familyId),
+      where('status', '==', 'active')
+    );
+    const unsub = onSnapshot(qConn, (snap) => {
+      setConnections(snap.docs.map(d => ({ id: d.id, ...d.data() } as FamilyConnection)));
+    });
+    return () => unsub();
+  }, [familyId, isShareModalOpen]);
+
+  const handleShare = async (targetFamilyId: string) => {
+    if (!recipe || !id) return;
+    setSharingTo(targetFamilyId);
+    try {
+      const shareFn = httpsCallable(functions, 'shareRecipe');
+      await shareFn({ recipeId: id, targetFamilyId });
+      alert('Recipe shared successfully!');
+      setIsShareModalOpen(false);
+    } catch (error) {
+      console.error(error);
+      alert('Failed to share recipe.');
+    } finally {
+      setSharingTo(null);
+    }
+  };
+
   // 2. Prep Hooks
   const prepHero = () => {
     if (!recipe) return;
     setEditTitle(recipe.title);
     setEditCategory(recipe.category);
     setEditIsHealthy(recipe.isHealthy);
+    setEditCookTime(recipe.cookTime || '');
     setEditImageUrl(recipe.imageUrl || '');
     setIsEditingHero(true);
   };
@@ -70,6 +112,7 @@ export function RecipeDetails() {
       title: editTitle.trim(),
       category: editCategory,
       isHealthy: editIsHealthy,
+      cookTime: editCookTime.trim() || null,
       imageUrl: editImageUrl.trim() || null
     });
     setSavingSection(null);
@@ -92,6 +135,21 @@ export function RecipeDetails() {
     await updateDoc(doc(db, 'recipes', id), { instructions: cleanParams });
     setSavingSection(null);
     setIsEditingInstructions(false);
+  };
+
+  const handleDelete = async () => {
+    if (!recipe || !id) return;
+    if (window.confirm("Are you sure you want to delete this recipe? This action cannot be undone.")) {
+      setDeleting(true);
+      try {
+        await deleteDoc(doc(db, 'recipes', id));
+        navigate('/recipes', { replace: true });
+      } catch (error) {
+        console.error("Failed to delete recipe:", error);
+        alert("Failed to delete recipe.");
+        setDeleting(false);
+      }
+    }
   };
 
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -151,12 +209,20 @@ export function RecipeDetails() {
         <ArrowLeft className="w-5 h-5 stroke-[2.5]" />
       </button>
 
-      <button 
-        onClick={() => window.print()}
-        className="flex items-center justify-center p-2.5 rounded-full bg-white/70 backdrop-blur-md text-zinc-900 shadow-sm border border-zinc-200/50 hover:bg-white transition-colors"
-      >
-        <Printer className="w-5 h-5 stroke-[2.5]" />
-      </button>
+      <div className="flex gap-2">
+        <button 
+          onClick={() => setIsShareModalOpen(true)}
+          className="flex items-center justify-center p-2.5 rounded-full bg-white/70 backdrop-blur-md text-zinc-900 shadow-sm border border-zinc-200/50 hover:bg-white transition-colors"
+        >
+          <ShareAndroid className="w-5 h-5 stroke-[2.5]" />
+        </button>
+        <button 
+          onClick={() => window.print()}
+          className="flex items-center justify-center p-2.5 rounded-full bg-white/70 backdrop-blur-md text-zinc-900 shadow-sm border border-zinc-200/50 hover:bg-white transition-colors"
+        >
+          <Printer className="w-5 h-5 stroke-[2.5]" />
+        </button>
+      </div>
     </div>
   );
 
@@ -192,6 +258,11 @@ export function RecipeDetails() {
                        <Badge variant="success" className="!bg-success-500 !border-success-500 !text-white !font-bold tracking-wider">🌿 Healthy</Badge> : 
                        <Badge variant="default" className="!bg-orange-500 !border-orange-500 !text-white !font-bold tracking-wider">🍔 Indulgent</Badge>
                     }
+                    {recipe.cookTime && (
+                       <Badge variant="default" className="!bg-zinc-800/80 !border-zinc-700 !text-white !font-bold tracking-wider backdrop-blur-md flex items-center gap-1.5">
+                          <Clock className="w-3.5 h-3.5 stroke-[3]" /> {recipe.cookTime}
+                       </Badge>
+                    )}
                   </div>
                   <h1 className="text-[32px] font-bold text-white print:text-zinc-900 leading-[1.1] tracking-tight drop-shadow-lg print:drop-shadow-none pr-4">{recipe.title}</h1>
                 </div>
@@ -222,6 +293,10 @@ export function RecipeDetails() {
                     </div>
                   </div>
                   <div>
+                    <label className="block text-[12px] font-bold tracking-widest text-zinc-400 uppercase mb-2">Cook Time</label>
+                    <Input value={editCookTime} onChange={e => setEditCookTime(e.target.value)} disabled={savingSection === 'hero'} className="!text-[15px] !py-3" placeholder="e.g. 30 mins (Optional)" />
+                  </div>
+                  <div>
                     <label className="block text-[12px] font-bold tracking-widest text-zinc-400 uppercase mb-2">Cover/Header Image</label>
                     <div className="flex gap-2">
                       <Input value={editImageUrl} onChange={e => setEditImageUrl(e.target.value)} disabled={savingSection === 'hero' || uploadingImage} placeholder="https://" className="flex-1" />
@@ -239,11 +314,20 @@ export function RecipeDetails() {
                       </div>
                     </div>
                   </div>
-                  <div className="flex justify-end gap-2 pt-2">
-                     <Button variant="outline" onClick={() => setIsEditingHero(false)} className="px-6">Cancel</Button>
-                     <Button variant="primary" onClick={saveHero} disabled={savingSection === 'hero'} className="px-6 flex items-center gap-1 bg-primary-500 hover:bg-primary-600 border-primary-500 shadow-primary-500/20 text-white">
-                        <Check className="w-5 h-5 stroke-[3]" /> Save Settings
-                     </Button>
+                  <div className="flex justify-between items-center pt-2">
+                     <button 
+                       onClick={handleDelete} 
+                       disabled={deleting} 
+                       className="flex items-center gap-1.5 px-4 py-2 text-danger-500 hover:bg-danger-50 rounded-xl transition-colors font-bold text-[14px]"
+                     >
+                       <Trash className="w-4 h-4 stroke-[2.5]" /> {deleting ? 'Deleting...' : 'Delete Recipe'}
+                     </button>
+                     <div className="flex gap-2">
+                        <Button variant="outline" onClick={() => setIsEditingHero(false)} className="px-6">Cancel</Button>
+                        <Button variant="primary" onClick={saveHero} disabled={savingSection === 'hero'} className="px-6 flex items-center gap-1 bg-primary-500 hover:bg-primary-600 border-primary-500 shadow-primary-500/20 text-white">
+                           <Check className="w-5 h-5 stroke-[3]" /> Save Settings
+                        </Button>
+                     </div>
                   </div>
                 </div>
               </div>
@@ -379,6 +463,48 @@ export function RecipeDetails() {
           </div>
         </div>
       )}
+
+      {/* Share Modal Portal */}
+      {isShareModalOpen && createPortal(
+        <div className="fixed inset-0 z-[100] flex flex-col justify-end p-0 items-center">
+          <div className="absolute inset-0 bg-zinc-900/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setIsShareModalOpen(false)} />
+
+          <div className="bg-white/90 backdrop-blur-3xl border-t border-white/40 w-full max-w-md max-h-[85vh] rounded-t-[32px] p-6 relative z-10 animate-in slide-in-from-bottom-8 duration-200 shadow-2xl flex flex-col pb-[env(safe-area-inset-bottom)]">
+            <div className="flex items-center justify-between mb-4 flex-none pt-2">
+              <h3 className="font-bold text-[19px] text-zinc-900 tracking-tight">Share Recipe</h3>
+              <button onClick={() => setIsShareModalOpen(false)} className="text-zinc-400 p-1.5 hover:bg-zinc-100 rounded-full transition-colors">
+                <Xmark className="w-5 h-5 stroke-[2.5]" />
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto min-h-0 space-y-3 pb-6 px-1">
+              {connections.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-zinc-500 font-medium">You don't have any connected families yet.</p>
+                  <Button onClick={() => { setIsShareModalOpen(false); navigate('/connections'); }} variant="outline" className="mt-4">
+                    Connect with a Family
+                  </Button>
+                </div>
+              ) : (
+                connections.map(conn => (
+                  <div key={conn.id} className="flex items-center justify-between p-3 bg-white rounded-2xl shadow-sm border border-zinc-100">
+                    <span className="font-bold text-zinc-900">{conn.toFamilyName}</span>
+                    <Button 
+                      onClick={() => handleShare(conn.toFamilyId)} 
+                      disabled={sharingTo === conn.toFamilyId}
+                      className="px-4 min-h-[36px] text-sm"
+                    >
+                      {sharingTo === conn.toFamilyId ? 'Sending...' : 'Send'}
+                    </Button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
     </PageWrapper>
   );
 }
