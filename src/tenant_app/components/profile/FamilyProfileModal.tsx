@@ -31,6 +31,7 @@ export function FamilyProfileModal({ onClose }: { onClose: () => void }) {
   const [saving, setSaving] = useState(false);
   const [demoSaving, setDemoSaving] = useState(false);
   const [emailsSaving, setEmailsSaving] = useState(false);
+  const [colorSaving, setColorSaving] = useState(false);
   const [iconGenerating, setIconGenerating] = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
 
@@ -117,22 +118,35 @@ export function FamilyProfileModal({ onClose }: { onClose: () => void }) {
 
   const diffEmails = JSON.stringify(localEmails) !== JSON.stringify(settings.authorizedEmails || []);
 
-  // Debounced Color Saving
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      if (localColor !== settings.themeColor) {
-         updateSettings({ themeColor: localColor }).catch(console.error);
+  const handleSaveColor = async () => {
+    if (!familyId) return;
+    setColorSaving(true);
+    try {
+      await updateSettings({ themeColor: localColor });
+      
+      // Also regenerate the logo with the new color automatically
+      if (settings.iconName) {
+        const iconCompObj = ICONS_LIST.find(i => i.name === settings.iconName);
+        if (iconCompObj) {
+           const IconComp = iconCompObj.icon;
+           const newIconUrl = await generatePngLogoUrl(familyId, <IconComp width="100%" height="100%" color={localColor} strokeWidth={2.5} />, localColor);
+           await updateSettings({ iconUrl: newIconUrl });
+        }
       }
-    }, 600);
-    return () => clearTimeout(handler);
-  }, [localColor, settings.themeColor, updateSettings]);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to save color settings.");
+    } finally {
+      setColorSaving(false);
+    }
+  };
 
   const handleSelectIcon = async (SelectedIcon: React.ElementType, iconName: string) => {
     if (!familyId) return;
     setIconGenerating(true);
     try {
        const dynamicColor = localColor || settings.themeColor || "#5793d9";
-       const newIconUrl = await generatePngLogoUrl(familyId, <SelectedIcon width="100%" height="100%" color={dynamicColor} strokeWidth={1.5} />, dynamicColor);
+       const newIconUrl = await generatePngLogoUrl(familyId, <SelectedIcon width="100%" height="100%" color={dynamicColor} strokeWidth={2.5} />, dynamicColor);
        await updateSettings({ iconUrl: newIconUrl, iconName });
     } catch (err) {
        console.error("Failed to generate updated logo", err);
@@ -248,13 +262,18 @@ export function FamilyProfileModal({ onClose }: { onClose: () => void }) {
           <div className="space-y-3 pt-2">
              <label className="block text-[12px] font-bold tracking-widest text-zinc-400 uppercase">App Theme Color</label>
              <p className="text-[13px] text-zinc-500 font-medium mb-3 leading-relaxed">Select any color to customize buttons and accents. This syncs across everyone's devices.</p>
-             <div className="flex items-center gap-4">
+             <div className="flex items-center gap-2">
                 <input 
                    type="color" 
                    value={localColor} 
                    onChange={(e) => setLocalColor(e.target.value)} 
-                   className="w-[100%] h-14 rounded-2xl cursor-pointer bg-white/50 backdrop-blur-sm p-1 border border-zinc-200" 
+                   className="flex-1 h-12 rounded-2xl cursor-pointer bg-white/50 backdrop-blur-sm p-1 border border-zinc-200" 
                 />
+                {(localColor !== settings.themeColor) && (
+                   <Button onClick={handleSaveColor} disabled={colorSaving} className="px-5 shadow-sm h-12">
+                     {colorSaving ? '...' : 'Save'}
+                   </Button>
+                )}
              </div>
           </div>
 

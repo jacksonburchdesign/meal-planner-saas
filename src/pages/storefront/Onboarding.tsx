@@ -185,7 +185,7 @@ export default function Onboarding() {
             <text x="50%" y="54%" dominantBaseline="middle" textAnchor="middle" fill={primaryColor} fontSize="48px" fontWeight="800" fontFamily="League Spartan, system-ui, sans-serif" letterSpacing="-0.02em">{logoLetters}</text>
           </svg>
         ) : (
-          <SelectedIconComp width="100%" height="100%" color={primaryColor} strokeWidth={1.5} />
+          <SelectedIconComp width="100%" height="100%" color={primaryColor} strokeWidth={2.5} />
         );
         iconUrl = await generatePngLogoUrl(familyId, iconNode, primaryColor);
       } catch (err) {

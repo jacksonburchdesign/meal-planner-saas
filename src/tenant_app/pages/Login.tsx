@@ -26,7 +26,7 @@ export function Login() {
         className="w-full max-w-sm bg-white/80 backdrop-blur-2xl rounded-[32px] p-8 shadow-[0_8px_40px_rgb(0,0,0,0.06)] border border-zinc-100 flex flex-col items-center text-center relative z-10"
       >
         <div className="w-24 h-24 rounded-[28px] mb-6 overflow-hidden drop-shadow-xl flex items-center justify-center bg-white border border-zinc-100 p-2">
-          <img src={settings.iconUrl || "/meal-planner-logo.svg"} alt="Meal Vault" className="w-full h-full object-contain" />
+          <img src={settings.iconUrl || "/meal-planner-logo.svg"} alt="Meal Vault" className="w-full h-full object-contain rounded-[20px]" />
         </div>
         
         <h1 className="text-2xl font-bold text-zinc-900 mb-2 tracking-tight">{settings.familyName || 'Family Meal Planner'}</h1>
