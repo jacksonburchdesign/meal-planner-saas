@@ -1,5 +1,4 @@
 import { PageWrapper } from '../components/layout/PageWrapper';
-import { useRecipes } from '../hooks';
 import { SnapRecipeCamera } from '../components/recipe/SnapRecipeCamera';
 import { ImportRecipeUrl } from '../components/recipe/ImportRecipeUrl';
 import { ImportPinterestBoard } from '../components/recipe/ImportPinterestBoard';
@@ -7,6 +6,7 @@ import { ManualRecipeInput } from '../components/recipe/ManualRecipeInput';
 import { useNavigate } from 'react-router-dom';
 import { useState, useMemo, useEffect } from 'react';
 import { useTenantData } from '../../context/TenantDataContext';
+import { useTheme } from '../../context/ThemeContext';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../services/firebase/config';
 import { motion } from 'framer-motion';
@@ -62,7 +62,8 @@ const itemV: Variants = {
 };
 
 export function AllRecipes() {
-  const { recipes, loading, familySettings, familyId } = useTenantData();
+  const { recipes, recipesLoading: loading, familySettings } = useTenantData();
+  const { familyId } = useTheme();
   const navigate = useNavigate();
   const [activeFilters, setActiveFilters] = useState<string[]>(['All']);
   const [displayLimit, setDisplayLimit] = useState(20);
