@@ -7,22 +7,27 @@ async function generateWeeklyPlanWithAI(recipes, history, currentPlanRecipes, he
     const prompt = `
 You are an expert meal planner AI.
 I am providing you with:
-1. A list of available recipes with their IDs, titles, categories, and healthiness.
+1. A list of available recipes with their IDs, titles, categories, healthiness, and cook times.
 2. A history of recipes the family has eaten in the last 30 days.
 3. The recipes they are already eating this current week.
 
-Your task is to select exactly 7 unique recipe IDs from the available recipes to form a meal plan for the upcoming 7 days.
+Your task is to select exactly 7 unique main entrées from the available recipes to form a meal plan for the upcoming 7 days.
+Additionally, you should select up to 3 complementary side dishes for each entrée.
 
 RULES:
-1. EXCLUDE any recipes that are in the 'current week' list.
-2. HEAVILY FAVOR recipes that do NOT appear in the recent 30-day history.
-3. If possible, select exactly ${healthyTarget} "healthy" recipes and ${indulgentTarget} "indulgent" recipes.
-4. Ensure variety in categories (don't pick 7 pasta dishes).
-5. Output ONLY a valid JSON array of strings, where each string is a selected recipe ID. Example: ["id1", "id2", "id3", "id4", "id5", "id6", "id7"].
-6. Do not include markdown formatting or backticks in the response.
+1. ONLY select recipes with the category "entrées" as the main meal (recipeId).
+2. ONLY select recipes with the category "sides" for the sideIds array.
+3. EXCLUDE any recipes that are in the 'current week' list.
+4. HEAVILY FAVOR recipes that do NOT appear in the recent 30-day history.
+5. If possible, select exactly ${healthyTarget} "healthy" recipes and ${indulgentTarget} "indulgent" recipes.
+6. Ensure variety in categories (don't pick 7 pasta dishes).
+7. Intelligently pair sides with the entrée. For example, pair a rich entrée with a light vegetable side, or serve bread with pasta.
+8. Ensure the combined cook time of the entrée and sides is reasonable.
+9. Output ONLY a valid JSON array of objects, where each object has a 'recipeId' (string) and 'sideIds' (array of strings). Example: [{"recipeId": "entree1", "sideIds": ["side1", "side2"]}, {"recipeId": "entree2", "sideIds": []}].
+10. Do not include markdown formatting or backticks in the response. Ensure there are exactly 7 objects in the array.
 
 DATA:
-Available Recipes: ${JSON.stringify(recipes.map(r => ({ id: r.id, title: r.title, category: r.category, isHealthy: r.isHealthy })))}
+Available Recipes: ${JSON.stringify(recipes.map(r => ({ id: r.id, title: r.title, category: r.category, isHealthy: r.isHealthy, cookTime: r.cookTime })))}
 30-Day History Recipe IDs: ${JSON.stringify(history)}
 Current Week Recipe IDs: ${JSON.stringify(currentPlanRecipes)}
   `;
@@ -55,9 +60,10 @@ Current Week Recipe IDs: ${JSON.stringify(currentPlanRecipes)}
     }
 }
 function fallbackSelection(recipes, healthyTarget, indulgentTarget) {
-    // Simple random fallback
-    const healthyRecipes = recipes.filter(r => r.isHealthy).map(r => r.id);
-    const indulgentRecipes = recipes.filter(r => !r.isHealthy).map(r => r.id);
+    // Simple random fallback - only entrees
+    const entrees = recipes.filter(r => r.category === 'entrées');
+    const healthyRecipes = entrees.filter(r => r.isHealthy).map(r => r.id);
+    const indulgentRecipes = entrees.filter(r => !r.isHealthy).map(r => r.id);
     // Shuffle arrays
     healthyRecipes.sort(() => Math.random() - 0.5);
     indulgentRecipes.sort(() => Math.random() - 0.5);
@@ -67,9 +73,9 @@ function fallbackSelection(recipes, healthyTarget, indulgentTarget) {
     ];
     // Fill any gaps if they don't have enough
     if (selected.length < 7) {
-        const remaining = recipes.map(r => r.id).filter(id => !selected.includes(id)).sort(() => Math.random() - 0.5);
+        const remaining = entrees.map(r => r.id).filter(id => !selected.includes(id)).sort(() => Math.random() - 0.5);
         selected.push(...remaining.slice(0, 7 - selected.length));
     }
-    return selected.slice(0, 7);
+    return selected.slice(0, 7).map(id => ({ recipeId: id, sideIds: [] }));
 }
 //# sourceMappingURL=ai-planner.js.map

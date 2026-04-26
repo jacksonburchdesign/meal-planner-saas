@@ -347,9 +347,10 @@ exports.generateWeeklyPlan = functions.https.onCall(async (request) => {
         }
     }
     const selectedIds = await (0, ai_planner_1.generateWeeklyPlanWithAI)(allRecipes, historyRecipeIds, currentPlanRecipeIds, healthyTarget, indulgentTarget);
-    const newMeals = selectedIds.map((id, index) => ({
+    const newMeals = selectedIds.map((selection, index) => ({
         id: `meal_${Date.now()}_${index}`,
-        recipeId: id,
+        recipeId: selection.recipeId,
+        sideIds: selection.sideIds || [],
         status: 'Pending',
         dayOfWeek: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][index],
         date: startDate + (index * 24 * 60 * 60 * 1000)

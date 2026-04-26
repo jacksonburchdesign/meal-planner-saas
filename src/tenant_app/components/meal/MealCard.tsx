@@ -82,13 +82,13 @@ export function MealCard({ meal, dayNumber, onStatusChange, onAddSide, onSwap }:
                  <span className="text-[12px] bg-danger-50 text-danger-700 px-2 rounded font-bold border border-danger-200/50">Indulgent</span>
              )}
              <span className="text-xs font-bold text-zinc-400 tracking-wider uppercase">{recipe.category}</span>
-             {recipe.cookTime && (
-                <span className="text-xs font-bold text-zinc-500 flex items-center gap-0.5">
-                   <Clock className="w-3.5 h-3.5 stroke-[2.5] text-zinc-400" /> {recipe.cookTime}
-                </span>
-             )}
           </div>
           <h3 className="text-[17px] leading-tight font-bold text-zinc-900 tracking-tight pr-2">{recipe.title}</h3>
+          {recipe.cookTime && (
+             <span className="text-xs font-bold text-zinc-500 flex items-center gap-1 mt-1">
+                <Clock className="w-3.5 h-3.5 stroke-[2.5] text-zinc-400" /> {recipe.cookTime}
+             </span>
+          )}
         </div>
       </div>
       
