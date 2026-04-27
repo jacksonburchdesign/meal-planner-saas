@@ -85,14 +85,13 @@ export function SnapRecipeCamera() {
           onChange={handleCapture}
         />
         
-        <Button 
+        <button 
           onClick={() => fileInputRef.current?.click()} 
-          variant="ghost"
           title="Upload or Snap Recipe Photos"
-          className="!p-2 min-h-0 bg-primary-100 hover:bg-primary-200 text-primary-700 w-10 h-10 rounded-full flex items-center justify-center transition-colors"
+          className="w-10 h-10 rounded-full flex items-center justify-center text-stone-600 hover:bg-stone-100 transition-colors active:scale-95"
         >
-          <Camera className="w-5 h-5 stroke-[2]" />
-        </Button>
+          <Camera className="w-[22px] h-[22px] stroke-[2]" />
+        </button>
       </div>
 
       {pendingImages.length > 0 && createPortal(

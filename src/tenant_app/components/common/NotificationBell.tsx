@@ -33,12 +33,12 @@ export function NotificationBell() {
     <div className="relative" ref={menuRef}>
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="relative flex items-center text-zinc-400 hover:text-zinc-900 transition-colors p-2 rounded-full hover:bg-zinc-100"
+        className="relative flex items-center text-stone-600 hover:text-stone-900 transition-colors p-2 rounded-full hover:bg-stone-100"
         title="Notifications"
       >
-        <Bell className="w-5 h-5 stroke-[2.5]" />
+        <Bell className="w-6 h-6 stroke-[1.5]" />
         {unreadCount > 0 && (
-          <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-danger-500 border-2 border-white rounded-full"></span>
+          <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-danger-500 border-2 border-white rounded-full"></span>
         )}
       </button>
 

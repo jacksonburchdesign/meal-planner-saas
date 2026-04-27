@@ -8,7 +8,8 @@ export function useNotifications() {
   const markAsRead = async (notificationId: string) => {
     try {
       await updateDoc(doc(db, 'notifications', notificationId), {
-        read: true
+        read: true,
+        readAt: Date.now()
       });
     } catch (error) {
       console.error("Failed to mark notification as read", error);
@@ -18,8 +19,9 @@ export function useNotifications() {
   const markAllAsRead = async () => {
     try {
       const batch = writeBatch(db);
+      const now = Date.now();
       notifications.filter(n => !n.read).forEach(n => {
-        batch.update(doc(db, 'notifications', n.id!), { read: true });
+        batch.update(doc(db, 'notifications', n.id!), { read: true, readAt: now });
       });
       await batch.commit();
     } catch (error) {

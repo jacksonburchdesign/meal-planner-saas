@@ -29,6 +29,11 @@ export interface WeeklyMealPlan {
   endDate: number;
   meals: PlannedMeal[];
   createdAt: number;
+  shoppingList?: {
+    checkedKeys: string[];
+    clearedKeys: string[];
+    customItems: Array<{ key: string; name: string; amountDisplay: string; recipeCount: number; category: string }>;
+  };
 }
 
 export interface PlannedMeal {

@@ -543,3 +543,33 @@ export const shareRecipe = functions.https.onCall(async (request: functions.http
   return { success: true };
 });
 
+import { onSchedule } from "firebase-functions/v2/scheduler";
+
+// ==========================================
+// CLEANUP READ NOTIFICATIONS (Scheduled Job)
+// ==========================================
+export const cleanupReadNotifications = onSchedule({ schedule: 'every 24 hours' }, async () => {
+  // Delete notifications marked as read where readAt < 7 days ago.
+  const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+  
+  // Batch limit is 500, we limit to 500 per execution to be safe.
+  // It runs daily, so it will chew through backlogs over time if there are many.
+  const snapshot = await admin.firestore().collection('notifications')
+    .where('read', '==', true)
+    .where('readAt', '<=', sevenDaysAgo)
+    .limit(500)
+    .get();
+
+  if (snapshot.empty) {
+    console.log("No read notifications to clean up.");
+    return;
+  }
+
+  const batch = admin.firestore().batch();
+  snapshot.docs.forEach((doc) => {
+    batch.delete(doc.ref);
+  });
+
+  await batch.commit();
+  console.log(`Successfully deleted ${snapshot.size} old read notifications.`);
+});

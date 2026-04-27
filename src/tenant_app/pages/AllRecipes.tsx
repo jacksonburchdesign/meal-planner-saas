@@ -61,9 +61,44 @@ const itemV: Variants = {
   show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
 };
 
+function RecipeCard({ recipe, navigate }: { recipe: any; navigate: any }) {
+  return (
+    <motion.div 
+      variants={itemV}
+      onClick={() => navigate(`/recipes/${recipe.id}`)}
+      className="break-inside-avoid relative overflow-hidden rounded-[20px] bg-white border border-stone-200/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-lg cursor-pointer group mb-3 w-full"
+      whileHover={{ y: -4, scale: 0.98 }}
+      whileTap={{ scale: 0.95 }}
+      transition={{ type: "spring", stiffness: 400, damping: 25 }}
+    >
+      <div className="w-full relative bg-stone-50 overflow-hidden" style={{ aspectRatio: getAspectRatio(recipe.title) }}>
+         <span className="absolute top-3 right-3 z-20 bg-white/20 backdrop-blur-md text-white border border-white/30 px-3 py-1 rounded-full text-[9px] uppercase font-bold tracking-wider shadow-sm transition-colors duration-300">
+            {recipe.category}
+         </span>
+         {recipe.imageUrl ? (
+            <img src={recipe.imageUrl} alt={recipe.title} loading="lazy" decoding="async" className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out" />
+         ) : (
+            <div className="w-full h-full flex flex-col items-center justify-center p-4 text-center transform group-hover:scale-105 transition-transform duration-700 ease-out" style={getGradientProps(recipe.title)}>
+               <h4 className="text-xl font-bold text-white/90 shadow-black/10 drop-shadow-md leading-tight mix-blend-overlay line-clamp-4">{recipe.title}</h4>
+            </div>
+         )}
+         <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+      </div>
+      <div className="absolute bottom-0 left-0 z-20 w-full p-4 flex flex-col gap-1.5 transform translate-y-1 group-hover:translate-y-0 transition-transform duration-300">
+         <h3 className="font-bold text-[14px] leading-tight text-white drop-shadow-lg line-clamp-2">{recipe.title}</h3>
+         {recipe.cookTime && (
+           <div className="flex items-center gap-1 text-[11px] font-bold text-white/90 drop-shadow-md">
+             <Clock className="w-3.5 h-3.5 stroke-[3]" /> {recipe.cookTime}
+           </div>
+         )}
+      </div>
+    </motion.div>
+  );
+}
+
 export function AllRecipes() {
   const { recipes, recipesLoading: loading, familySettings } = useTenantData();
-  const { familyId } = useTheme();
+  const { familyId, primaryColor } = useTheme();
   const navigate = useNavigate();
   const [activeFilters, setActiveFilters] = useState<string[]>(['All']);
   const [displayLimit, setDisplayLimit] = useState(20);
@@ -170,19 +205,23 @@ export function AllRecipes() {
       <div className="fixed inset-0 z-0 pointer-events-none bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary-50 via-zinc-50 to-zinc-50 opacity-60" />
 
       {/* Horizontal Tag Cloud */}
-      <div className="relative z-10 mb-4 -mx-4 px-4 overflow-x-auto custom-scrollbar flex items-center gap-2 pb-2 pl-4 pr-4">
-        {availableTags.map(tag => (
-          <button
-            key={tag}
-            onClick={() => toggleFilter(tag)}
-            className={`flex-none px-4 py-1.5 rounded-full text-[13px] font-bold tracking-wide transition-all active:scale-95 ${activeFilters.includes(tag) ? 'bg-primary-600 text-white shadow-md shadow-primary-500/20 border border-primary-600' : 'bg-white text-zinc-500 border border-zinc-200 hover:border-primary-300'}`}
-          >
-            {tag}
-          </button>
-        ))}
+      <div className="relative z-10 mb-4 -mx-4 px-4 overflow-x-auto flex items-center gap-2 pb-2 pl-4 pr-4 scrollbar-width-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none']">
+        {availableTags.map(tag => {
+          const isActive = activeFilters.includes(tag);
+          return (
+            <button
+              key={tag}
+              onClick={() => toggleFilter(tag)}
+              className={`flex-none px-4 py-1.5 rounded-full text-[13px] font-bold tracking-wide transition-all active:scale-95 ${isActive ? 'text-white border-transparent' : 'bg-white text-stone-600 border border-stone-200/50 shadow-sm'}`}
+              style={isActive ? { backgroundColor: primaryColor || '#3b82f6' } : {}}
+            >
+              {tag}
+            </button>
+          );
+        })}
         <button
           onClick={handleCreateGlobalTag}
-          className="flex-none px-3 py-1.5 rounded-full text-[13px] font-bold tracking-wide transition-all active:scale-95 bg-primary-50 text-primary-600 border border-primary-200 border-dashed hover:border-primary-400"
+          className="flex-none px-3 py-1.5 rounded-full text-[13px] font-bold tracking-wide transition-all active:scale-95 bg-white text-stone-600 border border-stone-200/50 border-dashed shadow-sm"
         >
           + Add
         </button>
@@ -206,37 +245,7 @@ export function AllRecipes() {
               className="hidden md:block md:columns-3 gap-3 pb-8"
             >
                {displayedRecipes.map(recipe => (
-                  <motion.div 
-                    variants={itemV}
-                    key={recipe.id} 
-                    onClick={() => navigate(`/recipes/${recipe.id}`)}
-                    className="break-inside-avoid relative overflow-hidden rounded-[20px] bg-white border border-zinc-200/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-lg cursor-pointer group mb-3 w-full"
-                    whileHover={{ y: -4, scale: 0.98 }}
-                    whileTap={{ scale: 0.95 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                  >
-                    <div className="w-full relative bg-zinc-50 overflow-hidden" style={{ aspectRatio: getAspectRatio(recipe.title) }}>
-                       <span className="absolute top-3 right-3 z-20 bg-white/80 backdrop-blur-md px-2.5 py-1 rounded-full text-[9px] uppercase font-bold tracking-widest shadow-sm border border-white/60 text-primary-600 mix-blend-luminosity group-hover:bg-primary-500 group-hover:text-white group-hover:border-primary-500 transition-colors duration-300">
-                          {recipe.category}
-                       </span>
-                       {recipe.imageUrl ? (
-                          <img src={recipe.imageUrl} alt={recipe.title} loading="lazy" decoding="async" className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out" />
-                       ) : (
-                          <div className="w-full h-full flex flex-col items-center justify-center p-4 text-center transform group-hover:scale-105 transition-transform duration-700 ease-out" style={getGradientProps(recipe.title)}>
-                             <h4 className="text-xl font-bold text-white/90 shadow-black/10 drop-shadow-md leading-tight mix-blend-overlay line-clamp-4">{recipe.title}</h4>
-                          </div>
-                       )}
-                       <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/80 via-black/10 to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-300" />
-                    </div>
-                    <div className="absolute bottom-0 z-20 w-full p-4 transform translate-y-1 group-hover:translate-y-0 transition-transform duration-300">
-                       <h3 className="font-bold text-[14px] leading-tight text-white drop-shadow-lg line-clamp-2">{recipe.title}</h3>
-                       {recipe.cookTime && (
-                         <div className="flex items-center gap-1 mt-1 text-[11px] font-bold text-white/90 drop-shadow-md">
-                           <Clock className="w-3 h-3 stroke-[3]" /> {recipe.cookTime}
-                         </div>
-                       )}
-                    </div>
-                  </motion.div>
+                 <RecipeCard key={recipe.id} recipe={recipe} navigate={navigate} />
                ))}
             </motion.div>
 
@@ -249,73 +258,13 @@ export function AllRecipes() {
             >
                <div className="flex-1 flex flex-col gap-3">
                   {displayedRecipes.filter((_, i) => i % 2 === 0).map(recipe => (
-                    <motion.div 
-                      variants={itemV}
-                      key={recipe.id} 
-                      onClick={() => navigate(`/recipes/${recipe.id}`)}
-                      className="relative overflow-hidden rounded-[20px] bg-white border border-zinc-200/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-lg cursor-pointer group mb-0 w-full"
-                      whileHover={{ y: -4, scale: 0.98 }}
-                      whileTap={{ scale: 0.95 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                    >
-                      <div className="w-full relative bg-zinc-50 overflow-hidden" style={{ aspectRatio: getAspectRatio(recipe.title) }}>
-                         <span className="absolute top-3 right-3 z-20 bg-white/80 backdrop-blur-md px-2.5 py-1 rounded-full text-[9px] uppercase font-bold tracking-widest shadow-sm border border-white/60 text-primary-600 mix-blend-luminosity group-hover:bg-primary-500 group-hover:text-white group-hover:border-primary-500 transition-colors duration-300">
-                            {recipe.category}
-                         </span>
-                         {recipe.imageUrl ? (
-                            <img src={recipe.imageUrl} alt={recipe.title} loading="lazy" decoding="async" className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out" />
-                         ) : (
-                            <div className="w-full h-full flex flex-col items-center justify-center p-4 text-center transform group-hover:scale-105 transition-transform duration-700 ease-out" style={getGradientProps(recipe.title)}>
-                               <h4 className="text-xl font-bold text-white/90 shadow-black/10 drop-shadow-md leading-tight mix-blend-overlay line-clamp-4">{recipe.title}</h4>
-                            </div>
-                         )}
-                         <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/80 via-black/10 to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-300" />
-                      </div>
-                      <div className="absolute bottom-0 z-20 w-full p-4 transform translate-y-1 group-hover:translate-y-0 transition-transform duration-300">
-                         <h3 className="font-bold text-[14px] leading-tight text-white drop-shadow-lg line-clamp-2">{recipe.title}</h3>
-                         {recipe.cookTime && (
-                           <div className="flex items-center gap-1 mt-1 text-[11px] font-bold text-white/90 drop-shadow-md">
-                             <Clock className="w-3 h-3 stroke-[3]" /> {recipe.cookTime}
-                           </div>
-                         )}
-                      </div>
-                    </motion.div>
+                    <RecipeCard key={recipe.id} recipe={recipe} navigate={navigate} />
                   ))}
                </div>
                
                <div className="flex-1 flex flex-col gap-3">
                   {displayedRecipes.filter((_, i) => i % 2 !== 0).map(recipe => (
-                    <motion.div 
-                      variants={itemV}
-                      key={recipe.id} 
-                      onClick={() => navigate(`/recipes/${recipe.id}`)}
-                      className="relative overflow-hidden rounded-[20px] bg-white border border-zinc-200/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-lg cursor-pointer group mb-0 w-full"
-                      whileHover={{ y: -4, scale: 0.98 }}
-                      whileTap={{ scale: 0.95 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                    >
-                      <div className="w-full relative bg-zinc-50 overflow-hidden" style={{ aspectRatio: getAspectRatio(recipe.title) }}>
-                         <span className="absolute top-3 right-3 z-20 bg-white/80 backdrop-blur-md px-2.5 py-1 rounded-full text-[9px] uppercase font-bold tracking-widest shadow-sm border border-white/60 text-primary-600 mix-blend-luminosity group-hover:bg-primary-500 group-hover:text-white group-hover:border-primary-500 transition-colors duration-300">
-                            {recipe.category}
-                         </span>
-                         {recipe.imageUrl ? (
-                            <img src={recipe.imageUrl} alt={recipe.title} loading="lazy" decoding="async" className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out" />
-                         ) : (
-                            <div className="w-full h-full flex flex-col items-center justify-center p-4 text-center transform group-hover:scale-105 transition-transform duration-700 ease-out" style={getGradientProps(recipe.title)}>
-                               <h4 className="text-xl font-bold text-white/90 shadow-black/10 drop-shadow-md leading-tight mix-blend-overlay line-clamp-4">{recipe.title}</h4>
-                            </div>
-                         )}
-                         <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/80 via-black/10 to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-300" />
-                      </div>
-                      <div className="absolute bottom-0 z-20 w-full p-4 transform translate-y-1 group-hover:translate-y-0 transition-transform duration-300">
-                         <h3 className="font-bold text-[14px] leading-tight text-white drop-shadow-lg line-clamp-2">{recipe.title}</h3>
-                         {recipe.cookTime && (
-                           <div className="flex items-center gap-1 mt-1 text-[11px] font-bold text-white/90 drop-shadow-md">
-                             <Clock className="w-3 h-3 stroke-[3]" /> {recipe.cookTime}
-                           </div>
-                         )}
-                      </div>
-                    </motion.div>
+                    <RecipeCard key={recipe.id} recipe={recipe} navigate={navigate} />
                   ))}
                </div>
              </motion.div>

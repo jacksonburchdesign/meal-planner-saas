@@ -133,7 +133,7 @@ export function ManualRecipeInput() {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="w-10 h-10 rounded-full flex items-center justify-center text-zinc-600 hover:bg-zinc-100 transition-colors active:scale-95"
+        className="w-10 h-10 rounded-full flex items-center justify-center text-stone-600 hover:bg-stone-100 transition-colors active:scale-95"
       >
         <EditPencil className="w-[22px] h-[22px] stroke-[2]" />
       </button>

@@ -5,10 +5,12 @@ import { db } from '../../services/firebase/config';
 import { 
   Xmark, 
   CreditCard,
-  OpenNewWindow
+  OpenNewWindow,
+  LogOut
 } from 'iconoir-react';
 import { useFamilySettings } from '../../hooks';
 import { useTheme } from '../../../context/ThemeContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { Button, Input } from '../common';
 import { generatePngLogoUrl } from '../../utils/logoUtils';
 
@@ -17,11 +19,13 @@ import { SHARED_ICON_OPTIONS as ICONS_LIST } from '../../../utils/icons';
 export function FamilyProfileModal({ onClose }: { onClose: () => void }) {
   const { settings, updateSettings } = useFamilySettings();
   const { familyId } = useTheme();
+  const { signOut } = useAuth();
   
   const [localName, setLocalName] = useState(settings.familyName);
   const [localColor, setLocalColor] = useState(settings.themeColor);
   const [adults, setAdults] = useState(settings.demographics?.adults || 2);
   const [children, setChildren] = useState(settings.demographics?.children || 0);
+  const [healthyMeals, setHealthyMeals] = useState(settings.mealPreferences?.healthyMealsPerWeek ?? 5);
   const [localEmails, setLocalEmails] = useState<string[]>(settings.authorizedEmails || []);
   const [emailInput, setEmailInput] = useState('');
   
@@ -32,6 +36,7 @@ export function FamilyProfileModal({ onClose }: { onClose: () => void }) {
 
   const [saving, setSaving] = useState(false);
   const [demoSaving, setDemoSaving] = useState(false);
+  const [preferencesSaving, setPreferencesSaving] = useState(false);
   const [emailsSaving, setEmailsSaving] = useState(false);
   const [colorSaving, setColorSaving] = useState(false);
   const [iconGenerating, setIconGenerating] = useState(false);
@@ -43,6 +48,7 @@ export function FamilyProfileModal({ onClose }: { onClose: () => void }) {
     setLocalColor(settings.themeColor);
     setAdults(settings.demographics?.adults || 2);
     setChildren(settings.demographics?.children || 0);
+    setHealthyMeals(settings.mealPreferences?.healthyMealsPerWeek ?? 5);
     setLocalEmails(settings.authorizedEmails || []);
   }, [settings]);
 
@@ -75,6 +81,17 @@ export function FamilyProfileModal({ onClose }: { onClose: () => void }) {
     setDemoSaving(true);
     await updateSettings({ demographics: { adults, children } });
     setDemoSaving(false);
+  };
+
+  const handleSavePreferences = async () => {
+    setPreferencesSaving(true);
+    await updateSettings({ 
+      mealPreferences: { 
+        healthyMealsPerWeek: healthyMeals, 
+        indulgentMealsPerWeek: 7 - healthyMeals 
+      } 
+    });
+    setPreferencesSaving(false);
   };
 
   const handleAddEmail = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -286,10 +303,40 @@ export function FamilyProfileModal({ onClose }: { onClose: () => void }) {
                      {demoSaving ? '...' : 'Save'}
                    </Button>
                 )}
-             </div>
-          </div>
+              </div>
+           </div>
 
-          {/* Section: Custom Theme Color */}
+           {/* Section: Meal Preferences */}
+           <div className="space-y-3 pt-2">
+              <label className="block text-[12px] font-bold tracking-widest text-zinc-400 uppercase">Meal Preferences</label>
+              <p className="text-[13px] text-zinc-500 font-medium leading-relaxed">Adjust the ratio of healthy vs. indulgent meals for your weekly AI plan (7 total).</p>
+              
+              <div className="bg-white/50 backdrop-blur-sm p-4 rounded-2xl border border-zinc-100 shadow-sm space-y-4">
+                 <div className="flex justify-between items-center text-[12px] font-bold">
+                    <span className="text-success-600 bg-success-50 px-2 py-0.5 rounded-md border border-success-200/50">{healthyMeals} Healthy</span>
+                    <span className="text-danger-600 bg-danger-50 px-2 py-0.5 rounded-md border border-danger-200/50">{7 - healthyMeals} Indulgent</span>
+                 </div>
+                 
+                 <input 
+                    type="range" 
+                    min="0" max="7" 
+                    step="1"
+                    value={healthyMeals}
+                    onChange={(e) => setHealthyMeals(parseInt(e.target.value))}
+                    className="w-full h-2 bg-zinc-200 rounded-lg appearance-none cursor-pointer accent-[var(--tenant-color-primary)]"
+                 />
+                 
+                 {(healthyMeals !== (settings.mealPreferences?.healthyMealsPerWeek ?? 5)) && (
+                    <div className="flex justify-end pt-1">
+                       <Button onClick={handleSavePreferences} disabled={preferencesSaving} className="px-5 shadow-sm text-xs h-9">
+                         {preferencesSaving ? '...' : 'Save Ratio'}
+                       </Button>
+                    </div>
+                 )}
+              </div>
+           </div>
+
+           {/* Section: Custom Theme Color */}
           <div className="space-y-3 pt-2">
              <label className="block text-[12px] font-bold tracking-widest text-zinc-400 uppercase">App Theme Color</label>
              <p className="text-[13px] text-zinc-500 font-medium mb-3 leading-relaxed">Select any color to customize buttons and accents. This syncs across everyone's devices.</p>
@@ -446,7 +493,15 @@ export function FamilyProfileModal({ onClose }: { onClose: () => void }) {
              )}
           </div>
 
-        </div>
+         </div>
+
+         {/* Section: Danger Zone (Log Out) */}
+         <div className="pt-6 mt-4 border-t border-rose-100 flex justify-center">
+            <button onClick={signOut} className="flex items-center gap-2 text-rose-500 hover:text-rose-600 transition-colors font-bold text-[14px] px-4 py-2 rounded-full hover:bg-rose-50">
+               <LogOut className="w-5 h-5 stroke-[2]" />
+               Sign Out
+            </button>
+         </div>
       </div>
     </div>,
     document.body

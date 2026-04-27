@@ -2,12 +2,11 @@ import { PageWrapper } from '../components/layout/PageWrapper';
 import { MealCard } from '../components/meal';
 import { useCurrentWeeklyMeals, useRecipes } from '../hooks';
 import { Button, NotificationBell } from '../components/common';
-import { Calendar, Refresh, LogOut, Xmark, User, Plus } from 'iconoir-react';
+import { Calendar, Refresh, Xmark, User, Plus } from 'iconoir-react';
 import { httpsCallable } from 'firebase/functions';
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { doc, updateDoc, deleteDoc, addDoc, collection } from 'firebase/firestore';
+import { doc, updateDoc, deleteDoc, setDoc } from 'firebase/firestore';
 import { db, functions } from '../services/firebase/config';
 import { FamilyProfileModal } from '../components/profile';
 import { useFamilySettings } from '../hooks';
@@ -20,7 +19,6 @@ export function Home() {
   const [generating, setGenerating] = useState(false);
   const [addingSideTo, setAddingSideTo] = useState<string | null>(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const { signOut } = useAuth();
   const { settings } = useFamilySettings();
   const { familyId } = useTheme();
 
@@ -52,12 +50,15 @@ export function Home() {
     });
 
     if (['Made', 'Skipped', 'Made something else'].includes(status)) {
-      await addDoc(collection(db, 'mealHistory'), {
+      await setDoc(doc(db, 'mealHistory', meal.id), {
         date: Date.now(),
         recipeId: meal.recipeId,
         status: status as any,
-        familyId
+        familyId,
+        planId: currentPlan.id
       });
+    } else if (status === 'Pending') {
+      await deleteDoc(doc(db, 'mealHistory', meal.id));
     }
   };
 
@@ -92,13 +93,10 @@ export function Home() {
     <PageWrapper 
       title={settings.familyName || "This Week"}
       action={
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
           <NotificationBell />
-          <button onClick={() => setIsProfileOpen(true)} className="flex items-center text-zinc-400 hover:text-zinc-900 transition-colors p-2 rounded-full hover:bg-zinc-100" title="Family Profile">
-             <User className="w-5 h-5 stroke-[2.5]" />
-          </button>
-          <button onClick={signOut} className="flex items-center text-zinc-400 hover:text-zinc-900 transition-colors p-2 rounded-full hover:bg-zinc-100" title="Sign out">
-             <LogOut className="w-5 h-5 stroke-[2.5]" />
+          <button onClick={() => setIsProfileOpen(true)} className="flex items-center text-stone-600 hover:text-stone-900 transition-colors p-2 rounded-full hover:bg-stone-100" title="Family Profile">
+             <User className="w-6 h-6 stroke-[1.5]" />
           </button>
         </div>
       }
@@ -120,7 +118,7 @@ export function Home() {
             <div className="space-y-px bg-zinc-100 rounded-3xl overflow-hidden border border-zinc-100 shadow-sm">
               {currentPlan.meals.map((meal: PlannedMeal, idx: number) => (
                 <div key={meal.id} className={`${idx !== currentPlan.meals.length-1 ? 'mb-px' : ''}`}>
-                   <MealCard meal={meal} dayNumber={idx + 1} onStatusChange={handleStatusChange} onAddSide={setAddingSideTo} />
+                   <MealCard meal={meal} dayNumber={idx + 1} onStatusChange={handleStatusChange} onAddSide={setAddingSideTo} tenantAccentColor={settings?.themeColor || '#10b981'} />
                 </div>
               ))}
             </div>
@@ -165,7 +163,7 @@ export function Home() {
                 <div className="space-y-px bg-zinc-100 rounded-3xl overflow-hidden border border-zinc-100 shadow-sm opacity-80">
                   {nextPlan.meals.map((meal: PlannedMeal, idx: number) => (
                     <div key={meal.id} className={`${idx !== nextPlan.meals.length-1 ? 'mb-px' : ''}`}>
-                       <MealCard meal={meal} dayNumber={idx + 1} onStatusChange={handleStatusChange} onAddSide={setAddingSideTo} />
+                       <MealCard meal={meal} dayNumber={idx + 1} onStatusChange={handleStatusChange} onAddSide={setAddingSideTo} tenantAccentColor={settings?.themeColor || '#10b981'} />
                     </div>
                   ))}
                 </div>

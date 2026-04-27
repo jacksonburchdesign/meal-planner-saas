@@ -36,7 +36,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.shareRecipe = exports.respondToConnection = exports.sendConnectionRequest = exports.generateWeeklyPlan = exports.processPinterestImport = exports.parseScannedRecipe = exports.importRecipeFromUrl = exports.api = void 0;
+exports.cleanupReadNotifications = exports.shareRecipe = exports.respondToConnection = exports.sendConnectionRequest = exports.generateWeeklyPlan = exports.processPinterestImport = exports.parseScannedRecipe = exports.importRecipeFromUrl = exports.api = void 0;
 const functions = __importStar(require("firebase-functions"));
 const admin = __importStar(require("firebase-admin"));
 const stripe_1 = __importDefault(require("stripe"));
@@ -487,5 +487,30 @@ exports.shareRecipe = functions.https.onCall(async (request) => {
         createdAt: Date.now()
     });
     return { success: true };
+});
+const scheduler_1 = require("firebase-functions/v2/scheduler");
+// ==========================================
+// CLEANUP READ NOTIFICATIONS (Scheduled Job)
+// ==========================================
+exports.cleanupReadNotifications = (0, scheduler_1.onSchedule)({ schedule: 'every 24 hours' }, async () => {
+    // Delete notifications marked as read where readAt < 7 days ago.
+    const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+    // Batch limit is 500, we limit to 500 per execution to be safe.
+    // It runs daily, so it will chew through backlogs over time if there are many.
+    const snapshot = await admin.firestore().collection('notifications')
+        .where('read', '==', true)
+        .where('readAt', '<=', sevenDaysAgo)
+        .limit(500)
+        .get();
+    if (snapshot.empty) {
+        console.log("No read notifications to clean up.");
+        return;
+    }
+    const batch = admin.firestore().batch();
+    snapshot.docs.forEach((doc) => {
+        batch.delete(doc.ref);
+    });
+    await batch.commit();
+    console.log(`Successfully deleted ${snapshot.size} old read notifications.`);
 });
 //# sourceMappingURL=index.js.map

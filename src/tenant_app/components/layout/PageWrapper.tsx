@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
 import { Navbar } from './Navbar';
-import { Refresh } from 'iconoir-react';
 
 interface PageWrapperProps {
   children: ReactNode;
@@ -11,7 +10,7 @@ interface PageWrapperProps {
 
 export function PageWrapper({ children, title, action, noPadding = false }: PageWrapperProps) {
   return (
-    <div className="min-h-screen pb-[calc(6.25rem+env(safe-area-inset-bottom))] bg-zinc-50 relative flex flex-col overflow-x-hidden">
+    <div className="min-h-screen pb-[calc(6.25rem+env(safe-area-inset-bottom))] bg-stone-50 relative flex flex-col">
       {/* Dynamic Background */}
       <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_top_right,_var(--color-primary-100)_0%,_transparent_50%),_radial-gradient(ellipse_at_bottom_left,_var(--color-primary-50)_0%,_transparent_50%)] opacity-60 pointer-events-none mix-blend-multiply" />
       
@@ -21,9 +20,6 @@ export function PageWrapper({ children, title, action, noPadding = false }: Page
           <div className="flex items-center justify-between px-4 h-14 max-w-md mx-auto">
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-semibold text-zinc-900 tracking-tight">{title}</h1>
-              <button onClick={() => window.location.reload()} className="text-zinc-400 hover:text-zinc-900 transition-colors p-1.5 rounded-full hover:bg-zinc-100" title="Refresh Data">
-                <Refresh className="w-4 h-4 stroke-[2.5]" />
-              </button>
             </div>
             {action && <div>{action}</div>}
           </div>
