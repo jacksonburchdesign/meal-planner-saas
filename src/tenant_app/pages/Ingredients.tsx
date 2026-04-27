@@ -198,7 +198,7 @@ export function Ingredients() {
     <PageWrapper title="Shopping List">
       <div className="space-y-6">
         {nextPlan && (
-          <div className="flex bg-zinc-100 p-1 rounded-2xl mb-6">
+          <div className="flex bg-zinc-100 p-1 rounded-2xl mb-6 relative z-30">
             <button 
               className={`flex-1 py-2 text-[14px] font-bold rounded-xl transition-all ${activeTab === 'current' ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-500 hover:text-zinc-700'}`}
               onClick={() => setActiveTab('current')}
@@ -222,17 +222,16 @@ export function Ingredients() {
            </div>
         ) : (
           <>
-            {/* The Invisible Masking Canopy (Visible only on scroll) */}
+            {/* The Invisible Masking Canopy (Matches Progress Box shape) */}
             <div 
-              className="sticky z-20 w-[100vw] left-1/2 -translate-x-1/2 pointer-events-none"
+              className="sticky z-10 w-full rounded-3xl pointer-events-none"
               style={{
                 top: 'calc(3.5rem + env(safe-area-inset-top, 0px))',
-                height: '48px',
-                marginTop: '26px',
-                marginBottom: '-74px',
-                background: 'linear-gradient(to bottom, rgba(255,255,255,0.98) 30%, rgba(255,255,255,0))',
-                backdropFilter: 'blur(12px)',
-                WebkitBackdropFilter: 'blur(12px)',
+                height: '78px',
+                marginBottom: '-78px',
+                background: 'rgba(255, 255, 255, 0.95)',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
               }}
             />
 
@@ -259,7 +258,7 @@ export function Ingredients() {
               </div>
             </div>
 
-            <form onSubmit={handleQuickAdd} className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] ring-1 ring-stone-900/5 px-5 h-[78px] flex items-center gap-2 mb-6">
+            <form onSubmit={handleQuickAdd} className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] ring-1 ring-stone-900/5 px-5 h-[78px] flex items-center gap-2 mb-6 relative z-30">
               <input 
                 type="text" 
                 placeholder="Add household item..." 
