@@ -10,6 +10,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      includeAssets: ['favicon.svg', 'meal-planner-logo.svg', 'icons.svg', 'tenet-logo-template.svg'],
       manifest: {
         name: 'MealHouse',
         short_name: 'MealHouse',
