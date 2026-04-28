@@ -15,15 +15,20 @@ service cloud.firestore {
     // users collection
     match /users/{userId} {
       allow read: if isAuthenticated() && (request.auth.uid == userId || resource.data.familyId == getUserFamilyId());
-      allow update, delete: if isAuthenticated() && (request.auth.uid == userId || resource.data.familyId == getUserFamilyId());
+      // Prevent privilege escalation: users cannot modify their own familyId or role
+      allow update: if isAuthenticated() && (request.auth.uid == userId || resource.data.familyId == getUserFamilyId()) 
+                    && request.resource.data.familyId == resource.data.familyId 
+                    && request.resource.data.get('role', '') == resource.data.get('role', '');
+      allow delete: if isAuthenticated() && (request.auth.uid == userId || resource.data.familyId == getUserFamilyId());
       allow create: if isAuthenticated() && request.auth.uid == userId;
     }
 
     // families collection
     match /families/{familyId} {
-      // Allow public read; primarily for fetching theme and basic info needed for unauth PWA loading on subdomains.
+      // Allow public get; primarily for fetching theme and basic info needed for unauth PWA loading on subdomains.
       // E.g., `where("subdomain_slug", "==", subdomain)`
-      allow read: if true; 
+      allow get: if true; 
+      allow list: if false; // Prevent enumeration and data leaks 
       
       // Allow creation by any authenticated user
       allow create: if isAuthenticated();

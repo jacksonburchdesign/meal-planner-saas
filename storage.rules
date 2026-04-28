@@ -3,7 +3,9 @@ service firebase.storage {
   match /b/{bucket}/o {
     match /app-logos/{imageId} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow write: if request.auth != null 
+                   && request.resource.size < 5 * 1024 * 1024 // 5MB limit
+                   && request.resource.contentType.matches('image/.*'); // Must be an image
     }
     match /{allPaths=**} {
       allow read, write: if false;

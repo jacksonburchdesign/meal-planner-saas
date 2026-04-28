@@ -36,7 +36,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.cleanupReadNotifications = exports.shareRecipe = exports.respondToConnection = exports.sendConnectionRequest = exports.generateWeeklyPlan = exports.processPinterestImport = exports.parseScannedRecipe = exports.importRecipeFromUrl = exports.api = void 0;
+exports.cleanupReadNotifications = exports.shareRecipe = exports.respondToConnection = exports.sendConnectionRequest = exports.generateWeeklyPlan = exports.processPinterestImport = exports.parseScannedRecipe = exports.importRecipeFromUrl = exports.api = exports.createCustomerPortalSession = exports.createCheckoutSession = void 0;
 const functions = __importStar(require("firebase-functions"));
 const admin = __importStar(require("firebase-admin"));
 const stripe_1 = __importDefault(require("stripe"));
@@ -59,13 +59,21 @@ app.use((0, cors_1.default)({ origin: true }));
 // ==========================================
 // CREATE CHECKOUT SESSION
 // ==========================================
-app.post("/create-checkout-session", async (req, res) => {
+exports.createCheckoutSession = functions.https.onCall(async (request) => {
+    if (!request.auth) {
+        throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated to create a checkout session.');
+    }
+    const { priceId, familyId, email, successUrl, cancelUrl } = request.data;
+    if (!priceId || !familyId || !successUrl || !cancelUrl) {
+        throw new functions.https.HttpsError('invalid-argument', 'Missing required parameters: priceId, familyId, successUrl, cancelUrl');
+    }
+    // Validate the user has access to this familyId
+    const userDoc = await admin.firestore().collection('users').doc(request.auth.uid).get();
+    const userData = userDoc.data();
+    if (!userData || userData.familyId !== familyId) {
+        throw new functions.https.HttpsError('permission-denied', 'You do not have permission to modify billing for this family.');
+    }
     try {
-        const { priceId, familyId, email, successUrl, cancelUrl } = req.body;
-        if (!priceId || !familyId || !successUrl || !cancelUrl) {
-            res.status(400).send({ error: "Missing required parameters: priceId, familyId, successUrl, cancelUrl" });
-            return;
-        }
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ["card"],
             line_items: [
@@ -83,38 +91,45 @@ app.post("/create-checkout-session", async (req, res) => {
                 trial_period_days: 30, // 30-day Free Trial Added Here
             }
         });
-        res.json({ url: session.url });
+        return { url: session.url };
     }
     catch (error) {
         console.error("Error creating checkout session:", error);
-        res.status(500).send({ error: "Internal Server Error" });
+        throw new functions.https.HttpsError('internal', 'Internal Server Error');
     }
 });
 // ==========================================
 // CREATE CUSTOMER PORTAL SESSION
 // ==========================================
-app.post("/create-customer-portal-session", async (req, res) => {
+exports.createCustomerPortalSession = functions.https.onCall(async (request) => {
+    if (!request.auth) {
+        throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated to access the billing portal.');
+    }
+    const { familyId, returnUrl } = request.data;
+    if (!familyId || !returnUrl) {
+        throw new functions.https.HttpsError('invalid-argument', 'Missing required parameters: familyId, returnUrl');
+    }
+    // Validate the user has access to this familyId
+    const userDoc = await admin.firestore().collection('users').doc(request.auth.uid).get();
+    const userData = userDoc.data();
+    if (!userData || userData.familyId !== familyId) {
+        throw new functions.https.HttpsError('permission-denied', 'You do not have permission to view billing for this family.');
+    }
     try {
-        const { familyId, returnUrl } = req.body;
-        if (!familyId || !returnUrl) {
-            res.status(400).send({ error: "Missing required parameters: familyId, returnUrl" });
-            return;
-        }
         const familyDoc = await admin.firestore().collection("families").doc(familyId).get();
         const familyData = familyDoc.data();
         if (!familyData || !familyData.stripeCustomerId) {
-            res.status(404).send({ error: "No active Stripe customer found for this family. Make sure you have completed checkout." });
-            return;
+            throw new functions.https.HttpsError('not-found', 'No active Stripe customer found for this family. Make sure you have completed checkout.');
         }
         const portalSession = await stripe.billingPortal.sessions.create({
             customer: familyData.stripeCustomerId,
             return_url: returnUrl,
         });
-        res.json({ url: portalSession.url });
+        return { url: portalSession.url };
     }
     catch (error) {
         console.error("Error creating portal session:", error);
-        res.status(500).send({ error: "Internal Server Error" });
+        throw new functions.https.HttpsError('internal', 'Internal Server Error');
     }
 });
 // ==========================================

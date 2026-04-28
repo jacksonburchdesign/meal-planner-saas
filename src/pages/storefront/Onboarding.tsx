@@ -4,6 +4,7 @@ import { generatePngLogoUrl } from '../../tenant_app/utils/logoUtils';
 import { createFamilyProfile, createUserRecord } from '../../services/firestore';
 import { auth, db } from '../../config/firebase';
 import { doc, getDoc } from 'firebase/firestore';
+import { httpsCallable } from 'firebase/functions';
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { motion, AnimatePresence } from 'framer-motion';
 import { NavArrowUp, NavArrowDown, Palette, Home, Xmark, CheckCircle } from 'iconoir-react';
@@ -232,8 +233,6 @@ export default function Onboarding() {
 
       // 5. Initialize Stripe Checkout
       const STRIPE_PRICE_ID = 'price_1TNO4VJHX18tokZby4LeKs11';
-      const BASE_URL = import.meta.env.VITE_STRIPE_API_URL || 'https://api-yr7sfhb5va-uc.a.run.app';
-      const functionUrl = `${BASE_URL}/create-checkout-session`;
 
       // Dynamically calculate return URLs based on execution environment (local loopback vs production)
       const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
@@ -244,26 +243,23 @@ export default function Onboarding() {
       const successUrl = `${protocol}//${targetHost}/success?session_id={CHECKOUT_SESSION_ID}`;
       const cancelUrl = `${protocol}//${targetHost}/canceled`;
       
-      const checkoutRes = await fetch(functionUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          priceId: STRIPE_PRICE_ID, 
-          familyId, 
-          email: user.email,
-          successUrl,
-          cancelUrl
-        })
+      const { functions } = await import('../../config/firebase');
+      const createCheckoutSessionFn = httpsCallable(functions, 'createCheckoutSession');
+
+      const checkoutRes = await createCheckoutSessionFn({
+        priceId: STRIPE_PRICE_ID, 
+        familyId, 
+        email: user.email,
+        successUrl,
+        cancelUrl
       });
 
-      if (checkoutRes.ok) {
-        const { url } = await checkoutRes.json();
+      const data = checkoutRes.data as { url: string };
+      if (data && data.url) {
         // Redirect completely out to the Stripe-hosted checkout page
-        window.location.href = url;
+        window.location.href = data.url;
       } else {
-        const errorText = await checkoutRes.text();
-        console.error("Stripe session failed:", errorText);
-        alert(`Failed to initialize Stripe checkout: ${errorText}`);
+        alert("Failed to create checkout session. Please try again.");
       }
 
     } catch (err: unknown) {

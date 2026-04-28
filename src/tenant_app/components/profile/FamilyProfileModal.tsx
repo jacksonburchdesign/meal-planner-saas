@@ -208,20 +208,19 @@ export function FamilyProfileModal({ onClose }: { onClose: () => void }) {
     if (!familyId) return;
     setPortalLoading(true);
     try {
-      const BASE_URL = import.meta.env.VITE_STRIPE_API_URL || 'https://api-yr7sfhb5va-uc.a.run.app';
       const returnUrl = window.location.href;
       
-      const response = await fetch(`${BASE_URL}/create-customer-portal-session`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ familyId, returnUrl })
-      });
+      const { functions } = await import('../../../config/firebase');
+      const { httpsCallable } = await import('firebase/functions');
+      const createCustomerPortalSessionFn = httpsCallable(functions, 'createCustomerPortalSession');
 
-      const data = await response.json();
-      if (data.url) {
+      const response = await createCustomerPortalSessionFn({ familyId, returnUrl });
+
+      const data = response.data as { url: string; error?: string };
+      if (data && data.url) {
         window.location.href = data.url;
       } else {
-        alert(data.error || "Failed to load subscription portal.");
+        alert(data?.error || "Failed to load subscription portal.");
       }
     } catch (error) {
       console.error(error);
