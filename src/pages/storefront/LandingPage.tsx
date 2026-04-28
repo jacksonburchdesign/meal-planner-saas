@@ -62,6 +62,11 @@ export default function LandingPage() {
       
       {/* ── LEFT: Headline + sub + CTA ── */}
       <div className="flex flex-col justify-center gap-5 flex-1 w-full">
+        {Date.now() < new Date('2026-04-29T00:01:00').getTime() && (
+          <a href="https://www.producthunt.com/products/mealhouse?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-mealhouse" target="_blank" rel="noopener noreferrer" className="self-start">
+            <img alt="MealHouse - Your family's custom AI meal planner & smart recipe vault. | Product Hunt" width="250" height="54" src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1133847&theme=dark&t=1777335866863" />
+          </a>
+        )}
         <h1 className="font-['League_Spartan'] text-[clamp(2.5rem,8vw,4.2rem)] font-black text-[hsl(var(--text-primary))] leading-[1.05] tracking-tight m-0">
           Total Kitchen
           <br />
