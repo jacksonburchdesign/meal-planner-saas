@@ -7,6 +7,7 @@ import {
   Community,
   CalendarCheck,
   Cart,
+  Palette, DownloadCircle, EditPencil,
   Apple, AppleHalf, PizzaSlice, Cookie, HalfCookie, CoffeeCup, Cutlery, Fridge, IceCream, BreadSlice, Egg, Fish, Home, Book, Clock, List
 } from 'iconoir-react';
 import { SHARED_ICON_OPTIONS as ICON_OPTIONS } from '../utils/icons';
@@ -25,14 +26,14 @@ const FEATURES: Feature[] = [
     id: 'import',
     label: 'Import Recipes',
     description:
-      "Add recipes 4 ways: type them manually, paste a URL (we parse ingredients, steps & the hero image automatically), sync a Pinterest board (up to 50 pins), or snap a photo of a recipe card.",
+      "Type manually, paste a URL, sync a Pinterest board, or snap a photo. We parse ingredients, steps & images automatically.",
     icon: <BookStack width={18} height={18} strokeWidth={2} />,
   },
   {
     id: 'ai',
     label: 'AI Assisted',
     description:
-      "Our AI builds a personalized 7-day meal plan tailored to your family's size, recipes, and 30-day history, parses handwritten recipes intelligently, and more!",
+      "Our AI builds a 7-day meal plan tailored to your family's size and history, parses handwritten recipes, and more!",
     icon: <Sparks width={18} height={18} strokeWidth={2} />,
   },
   {
@@ -46,7 +47,7 @@ const FEATURES: Feature[] = [
     id: 'mealplan',
     label: '7-Day Meal Plan',
     description:
-      'A full week of dinners generated in seconds. Swap any meal with a single tap, mark meals as completed or skipped!',
+      'A full week of dinners generated in seconds. Swap any meal with a tap, mark meals as completed or skipped!',
     icon: <CalendarCheck width={18} height={18} strokeWidth={2} />,
   },
   {
@@ -55,6 +56,27 @@ const FEATURES: Feature[] = [
     description:
       'Your grocery list is auto-built from the meal plan and updates in real time as you make changes!',
     icon: <Cart width={18} height={18} strokeWidth={2} />,
+  },
+  {
+    id: 'branding',
+    label: 'Make It Yours',
+    description:
+      "Personalize the app with your family's name, choose a custom color theme, and upload your own unique app icon.",
+    icon: <Palette width={18} height={18} strokeWidth={2} />,
+  },
+  {
+    id: 'pwa',
+    label: 'Installs Like Magic',
+    description:
+      'Add MealHouse straight to your iPhone or Android home screen with one tap. No app store downloads required!',
+    icon: <DownloadCircle width={18} height={18} strokeWidth={2} />,
+  },
+  {
+    id: 'editing',
+    label: 'Edit & Print Recipes',
+    description:
+      'Tweak ingredients, upload mouth-watering photos, organize with custom tags, and print beautiful, clean recipe cards.',
+    icon: <EditPencil width={18} height={18} strokeWidth={2} />,
   },
 ];
 
@@ -407,7 +429,7 @@ function FeatureCard({
       onClick={onClick}
     >
       <motion.div
-        animate={{ padding: isMini ? '8px 16px' : '14px 18px' }}
+        animate={{ padding: isMini ? '6px 14px' : '10px 16px' }}
         transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
         style={{
           display: 'flex',
@@ -418,8 +440,8 @@ function FeatureCard({
       >
         <motion.div
           animate={{
-            width: isMini ? 26 : 36,
-            height: isMini ? 26 : 36,
+            width: isMini ? 24 : 32,
+            height: isMini ? 24 : 32,
             borderRadius: isMini ? 7 : 10,
             backgroundColor: '#ffffff',
             color: 'hsl(var(--accent-h) var(--accent-s) var(--accent-l))',
@@ -439,7 +461,7 @@ function FeatureCard({
 
         <motion.span
           animate={{
-            fontSize: isMini ? '1rem' : '1.2rem',
+            fontSize: isMini ? '0.95rem' : '1.1rem',
             color: isMini ? 'hsl(var(--text-secondary))' : 'hsl(var(--text-primary))',
             opacity: isMini ? 0.75 : 1,
           }}
@@ -493,10 +515,10 @@ function FeatureCard({
             <p
               style={{
                 margin: 0,
-                padding: '12px 18px 16px 66px',
-                color: 'hsl(var(--text-secondary))',
-                fontSize: '0.88rem',
-                lineHeight: 1.7,
+                padding: '10px 16px 14px 58px',
+                color: 'hsl(var(--text-primary))',
+                fontSize: '0.85rem',
+                lineHeight: 1.6,
                 fontWeight: 500,
               }}
             >
@@ -517,7 +539,7 @@ function FeatureSection() {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, width: '100%' }}>
       {FEATURES.map((feature, index) => (
         <FeatureCard
           key={feature.id}
