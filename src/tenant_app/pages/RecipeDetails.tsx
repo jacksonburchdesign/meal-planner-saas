@@ -303,22 +303,56 @@ export function RecipeDetails() {
                     <Input value={editCookTime} onChange={e => setEditCookTime(e.target.value)} disabled={savingSection === 'hero'} className="!text-[15px] !py-3" placeholder="e.g. 30 mins (Optional)" />
                   </div>
                   <div>
-                    <label className="block text-[12px] font-bold tracking-widest text-zinc-400 uppercase mb-2">Cover/Header Image</label>
-                    <div className="flex gap-2">
-                      <Input value={editImageUrl} onChange={e => setEditImageUrl(e.target.value)} disabled={savingSection === 'hero' || uploadingImage} placeholder="https://" className="flex-1" />
-                      <div className="relative">
+                    <label className="block text-[12px] font-bold tracking-widest text-zinc-400 uppercase mb-2">Recipe Photo</label>
+                    {!editImageUrl ? (
+                      <div className="relative w-full h-[160px] rounded-xl border-2 border-dashed border-zinc-200 bg-zinc-50/50 hover:bg-zinc-50 transition-colors flex flex-col items-center justify-center cursor-pointer overflow-hidden">
                         <input 
                           type="file" 
-                          accept="image/*" 
-                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed z-10"
-                          onChange={handleImageUpload}
+                          accept="image/*"
                           disabled={savingSection === 'hero' || uploadingImage}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                          onChange={handleImageUpload}
                         />
-                        <Button variant="outline" disabled={savingSection === 'hero' || uploadingImage} className="px-4 h-[50px] flex items-center justify-center rounded-xl bg-zinc-50 hover:bg-zinc-100">
-                          {uploadingImage ? <RefreshDouble className="w-5 h-5 animate-spin text-zinc-500" /> : <CloudUpload className="w-5 h-5 text-zinc-500 stroke-[2]" />}
-                        </Button>
+                        {uploadingImage ? (
+                          <>
+                            <RefreshDouble className="w-8 h-8 text-primary-500 mb-2 animate-spin stroke-[1.5]" />
+                            <span className="text-[13px] font-bold text-zinc-500">Uploading...</span>
+                          </>
+                        ) : (
+                          <>
+                            <CloudUpload className="w-8 h-8 text-zinc-400 mb-2 stroke-[1.5]" />
+                            <span className="text-[13px] font-bold text-zinc-500">Tap to upload photo</span>
+                          </>
+                        )}
                       </div>
-                    </div>
+                    ) : (
+                      <div className="relative w-full h-[160px] rounded-xl overflow-hidden border border-zinc-200 bg-zinc-100 group">
+                        <img src={editImageUrl} alt="Recipe Preview" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                          <div className="relative">
+                            <input 
+                              type="file" 
+                              accept="image/*"
+                              disabled={savingSection === 'hero' || uploadingImage}
+                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                              onChange={handleImageUpload}
+                            />
+                            <Button variant="primary" disabled={savingSection === 'hero' || uploadingImage} className="rounded-full px-4 h-10 text-white font-bold text-[13px] flex items-center justify-center gap-1">
+                               {uploadingImage ? <RefreshDouble className="w-4 h-4 animate-spin" /> : <CloudUpload className="w-4 h-4 stroke-[2]" />}
+                               {uploadingImage ? 'Uploading...' : 'Change'}
+                            </Button>
+                          </div>
+                          <button 
+                            disabled={savingSection === 'hero' || uploadingImage}
+                            onClick={() => setEditImageUrl('')}
+                            className="bg-danger-500 text-white p-2.5 rounded-full hover:bg-danger-600 transition-colors shadow-sm flex items-center justify-center h-10 w-10"
+                            title="Remove Photo"
+                          >
+                            <Xmark className="w-5 h-5 stroke-[2.5]" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <div>
                     <label className="block text-[12px] font-bold tracking-widest text-zinc-400 uppercase mb-2">Tags</label>

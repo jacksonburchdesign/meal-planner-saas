@@ -138,7 +138,7 @@ export function useFamilySettings() {
           short_name: settings.familyName || 'MealHouse',
           display: 'standalone',
           background_color: '#ffffff',
-          theme_color: settings.themeColor || '#0097b2',
+          theme_color: '#ffffff',
           icons: [
             { src: settings.iconUrl, sizes: '192x192', type: 'image/png' },
             { src: settings.iconUrl, sizes: '512x512', type: 'image/png' }
@@ -146,6 +146,11 @@ export function useFamilySettings() {
         };
         const blob = new Blob([JSON.stringify(dynamicManifest)], { type: 'application/json' });
         manifestLink.href = URL.createObjectURL(blob);
+        
+        // Force the physical body and html tags to white for PWA status bar consistency
+        // This overrides the storefront's oatmeal background
+        document.body.style.backgroundColor = '#ffffff';
+        document.documentElement.style.backgroundColor = '#ffffff';
       }
     }
   }, [settings]);
