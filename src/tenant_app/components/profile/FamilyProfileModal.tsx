@@ -41,6 +41,7 @@ export function FamilyProfileModal({ onClose }: { onClose: () => void }) {
   const [colorSaving, setColorSaving] = useState(false);
   const [iconGenerating, setIconGenerating] = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
+  const [showPwaNotice, setShowPwaNotice] = useState(false);
 
   // Sync when data loads
   useEffect(() => {
@@ -159,6 +160,7 @@ export function FamilyProfileModal({ onClose }: { onClose: () => void }) {
            const IconComp = iconCompObj.icon;
            newIconUrl = await generatePngLogoUrl(familyId, <IconComp width="100%" height="100%" fill={localColor} strokeWidth={(iconCompObj as any).isIconoir ? 2.5 : undefined} />, localColor);
            await updateSettings({ iconUrl: newIconUrl });
+           setShowPwaNotice(true);
         }
       }
     } catch (err) {
@@ -181,6 +183,7 @@ export function FamilyProfileModal({ onClose }: { onClose: () => void }) {
        );
        const newIconUrl = await generatePngLogoUrl(familyId, iconNode, dynamicColor);
        await updateSettings({ iconUrl: newIconUrl });
+       setShowPwaNotice(true);
     } catch (err) {
        console.error(err);
        alert("Failed to generate letter logo.");
@@ -196,6 +199,7 @@ export function FamilyProfileModal({ onClose }: { onClose: () => void }) {
        const dynamicColor = localColor || settings.themeColor || "#5793d9";
        const newIconUrl = await generatePngLogoUrl(familyId, <SelectedIcon width="100%" height="100%" fill={dynamicColor} strokeWidth={isIconoir ? 2.5 : undefined} />, dynamicColor);
        await updateSettings({ iconUrl: newIconUrl, iconName });
+       setShowPwaNotice(true);
     } catch (err) {
        console.error("Failed to generate updated logo", err);
        alert("Failed to create the Family App Logo. Please try again.");
@@ -232,6 +236,22 @@ export function FamilyProfileModal({ onClose }: { onClose: () => void }) {
 
   return createPortal(
     <div className="fixed inset-0 z-[100] flex flex-col justify-end md:justify-center p-0 md:p-4 items-center">
+      {showPwaNotice && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl animate-in zoom-in-95 duration-300 relative overflow-hidden z-10">
+            <div className="absolute top-0 left-0 w-full h-1 bg-primary-500"></div>
+            <h3 className="text-[20px] font-bold text-zinc-900 mb-3 tracking-tight">App Icon Updated!</h3>
+            <p className="text-zinc-600 mb-6 text-[15px] leading-relaxed">
+              To apply your new app icon to your phone's home screen, you must <strong className="text-zinc-900 font-bold">delete the current app</strong> from your home screen, then open Safari and <strong className="text-zinc-900 font-bold">Add to Home Screen</strong> again.
+            </p>
+            <Button variant="primary" className="w-full h-[50px] font-bold text-[16px] rounded-xl shadow-lg shadow-primary-500/20 bg-primary-500 border-primary-500 hover:bg-primary-600 text-white" onClick={() => setShowPwaNotice(false)}>
+              I understand
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div 
         className="absolute inset-0 bg-zinc-900/60 backdrop-blur-sm animate-in fade-in duration-200 w-full" 
         onClick={onClose} 

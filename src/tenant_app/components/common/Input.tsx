@@ -16,7 +16,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           {icon && <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400">{icon}</div>}
           <input
             ref={ref}
-            className={`w-full bg-zinc-50/50 backdrop-blur-sm border border-zinc-200 text-zinc-900 text-[15px] font-medium rounded-xl focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 focus:bg-white transition-all duration-300 outline-none min-h-[48px] ${
+            className={`w-full bg-zinc-50/50 backdrop-blur-sm border border-zinc-200 text-zinc-900 text-[16px] font-medium rounded-xl focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 focus:bg-white transition-all duration-300 outline-none min-h-[48px] ${
               icon ? 'pl-11 pr-4' : 'px-4'
             } ${error ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20' : ''} ${className}`}
             {...props}

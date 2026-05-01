@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { db } from '../../services/firebase/config';
+import { db, storage } from '../../services/firebase/config';
 import { collection, addDoc } from 'firebase/firestore';
-import { Xmark, EditPencil } from 'iconoir-react';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { Xmark, EditPencil, CloudUpload } from 'iconoir-react';
 import { Button, Input } from '../common';
 import { useNavigate } from 'react-router-dom';
 import type { Ingredient, RecipeCategory } from '../../types';
@@ -45,6 +46,7 @@ export function ManualRecipeInput() {
   const [category, setCategory] = useState<RecipeCategory>('entrées');
   const [isHealthy, setIsHealthy] = useState(true);
   const [imageUrl, setImageUrl] = useState('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [ingredients, setIngredients] = useState<string[]>(['']);
   const [instructions, setInstructions] = useState<string[]>(['']);
   const [saving, setSaving] = useState(false);
@@ -93,11 +95,19 @@ export function ManualRecipeInput() {
 
       const filteredInstructions = instructions.filter(i => i.trim() !== '');
 
+      let uploadedUrl = imageUrl;
+
+      if (imageFile) {
+        const fileRef = ref(storage, `families/${familyId}/recipes/${Date.now()}_${imageFile.name}`);
+        const uploadTask = await uploadBytesResumable(fileRef, imageFile);
+        uploadedUrl = await getDownloadURL(uploadTask.ref);
+      }
+
       const recipeDoc = {
         title: title.trim(),
         category,
         isHealthy,
-        imageUrl: imageUrl.trim() || null,
+        imageUrl: uploadedUrl.trim() || null,
         ingredients: parsedIngredients,
         instructions: filteredInstructions,
         tags: [],
@@ -117,6 +127,7 @@ export function ManualRecipeInput() {
       setCategory('entrées');
       setIsHealthy(true);
       setImageUrl('');
+      setImageFile(null);
       setIngredients(['']);
       setInstructions(['']);
       
@@ -176,7 +187,7 @@ export function ManualRecipeInput() {
                         value={category} 
                         onChange={(e) => setCategory(e.target.value as RecipeCategory)}
                         disabled={saving}
-                        className="w-full bg-zinc-50 border border-zinc-200 text-zinc-900 text-[15px] p-3 rounded-xl placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all appearance-none"
+                        className="w-full bg-zinc-50 border border-zinc-200 text-zinc-900 text-[16px] p-3 rounded-xl placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all appearance-none"
                       >
                         <option value="entrées">Entrées</option>
                         <option value="sides">Sides</option>
@@ -200,8 +211,41 @@ export function ManualRecipeInput() {
                 </div>
 
                 <div>
-                  <label className="block text-[13px] font-bold tracking-wide text-zinc-500 uppercase mb-2">Image URL (Optional)</label>
-                  <Input type="url" placeholder="https://..." value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} disabled={saving} />
+                  <label className="block text-[13px] font-bold tracking-wide text-zinc-500 uppercase mb-2">Recipe Photo (Optional)</label>
+                  {!imageFile && !imageUrl ? (
+                    <div className="relative w-full h-[120px] rounded-xl border-2 border-dashed border-zinc-200 bg-zinc-50/50 hover:bg-zinc-50 transition-colors flex flex-col items-center justify-center cursor-pointer overflow-hidden">
+                      <input 
+                        type="file" 
+                        accept="image/*"
+                        disabled={saving}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files[0]) {
+                            setImageFile(e.target.files[0]);
+                            setImageUrl(URL.createObjectURL(e.target.files[0]));
+                          }
+                        }}
+                      />
+                      <CloudUpload className="w-8 h-8 text-zinc-400 mb-2 stroke-[1.5]" />
+                      <span className="text-[13px] font-bold text-zinc-500">Tap to upload photo</span>
+                    </div>
+                  ) : (
+                    <div className="relative w-full h-[120px] rounded-xl overflow-hidden border border-zinc-200 bg-zinc-100 group">
+                      <img src={imageUrl} alt="Recipe Preview" className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <button 
+                          disabled={saving}
+                          onClick={() => {
+                            setImageFile(null);
+                            setImageUrl('');
+                          }}
+                          className="bg-danger-500 text-white p-2 rounded-full hover:bg-danger-600 transition-colors"
+                        >
+                          <Xmark className="w-5 h-5 stroke-[2.5]" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -219,7 +263,7 @@ export function ManualRecipeInput() {
                        placeholder="e.g. 2 cups flour" 
                        value={ing} 
                        onChange={(e) => handleUpdateArray('ing', i, e.target.value)}
-                       className="!py-2 !text-[14px]"
+                       className="!py-2 !text-[16px]"
                     />
                     <button onClick={() => handleRemoveField('ing', i)} className="p-2 text-zinc-400 hover:text-danger-500 hover:bg-danger-50 rounded-xl transition-all shrink-0">
                        <Xmark className="w-5 h-5 stroke-[2]" />
@@ -245,7 +289,7 @@ export function ManualRecipeInput() {
                        placeholder="Chop the onions..."
                        value={inst}
                        onChange={(e) => handleUpdateArray('inst', i, e.target.value)}
-                       className="w-full bg-white border border-zinc-200 text-zinc-900 text-[14px] rounded-xl pl-10 pr-4 py-2.5 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all min-h-[80px] resize-y"
+                       className="w-full bg-white border border-zinc-200 text-zinc-900 text-[16px] rounded-xl pl-10 pr-4 py-2.5 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all min-h-[80px] resize-y"
                     />
                     <button onClick={() => handleRemoveField('inst', i)} className="p-2 mt-2 text-zinc-400 hover:text-danger-500 hover:bg-danger-50 rounded-xl transition-all shrink-0">
                        <Xmark className="w-5 h-5 stroke-[2]" />

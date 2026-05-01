@@ -187,34 +187,8 @@ export function RecipeDetails() {
 
     setUploadingImage(true);
     try {
-      const img = new Image();
-      const reader = new FileReader();
-
-      const blob = await new Promise<Blob>((resolve, reject) => {
-        reader.onload = (event) => {
-          img.onload = () => {
-             const canvas = document.createElement('canvas');
-             const MAX_WIDTH = 1200;
-             const scaleSize = MAX_WIDTH / img.width;
-             canvas.width = MAX_WIDTH;
-             canvas.height = img.height * scaleSize;
-             const ctx = canvas.getContext('2d');
-             ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
-             
-             canvas.toBlob((b) => {
-               if (b) resolve(b);
-               else reject(new Error("Canvas failure"));
-             }, 'image/jpeg', 0.8);
-          }
-          img.onerror = reject;
-          img.src = event.target?.result as string;
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-
-      const storageRef = ref(storage, `recipes/${id}/${Date.now()}.jpg`);
-      const snapshot = await uploadBytesResumable(storageRef, blob);
+      const storageRef = ref(storage, `recipes/${id}/${Date.now()}_${file.name}`);
+      const snapshot = await uploadBytesResumable(storageRef, file);
       const downloadURL = await getDownloadURL(snapshot.ref);
       
       setEditImageUrl(downloadURL);
@@ -312,7 +286,7 @@ export function RecipeDetails() {
                       <select 
                         value={editCategory} 
                         onChange={(e) => setEditCategory(e.target.value as RecipeCategory)}
-                        className="w-full bg-zinc-50 border border-zinc-200 text-zinc-900 text-[15px] p-3 rounded-xl focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
+                        className="w-full bg-zinc-50 border border-zinc-200 text-zinc-900 text-[16px] p-3 rounded-xl focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
                       >
                          {['entrées', 'sides', 'sauces', 'snacks', 'desserts', 'smoothies', 'dips'].map(c => <option key={c} value={c}>{c}</option>)}
                       </select>
@@ -434,7 +408,7 @@ export function RecipeDetails() {
                             newArr[i] = e.target.value;
                             setEditIngredients(newArr);
                          }}
-                         className="!py-2.5 !text-[14px] bg-white"
+                         className="!py-2.5 !text-[16px] bg-white"
                        />
                        <button onClick={() => setEditIngredients(editIngredients.filter((_, idx) => idx !== i))} className="p-2 text-zinc-400 hover:text-danger-500 hover:bg-white rounded-xl transition-all">
                           <Xmark className="w-5 h-5 stroke-[2.5]" />
@@ -489,7 +463,7 @@ export function RecipeDetails() {
                             newArr[i] = e.target.value;
                             setEditInstructions(newArr);
                          }}
-                         className="w-full bg-white border border-zinc-200 text-zinc-900 text-[14px] rounded-xl pl-11 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all min-h-[90px] resize-y shadow-sm"
+                         className="w-full bg-white border border-zinc-200 text-zinc-900 text-[16px] rounded-xl pl-11 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all min-h-[90px] resize-y shadow-sm"
                       />
                       <button onClick={() => setEditInstructions(editInstructions.filter((_, idx) => idx !== i))} className="p-2 mt-2 text-zinc-400 hover:text-danger-500 hover:bg-white rounded-xl transition-all">
                          <Xmark className="w-5 h-5 stroke-[2.5]" />
