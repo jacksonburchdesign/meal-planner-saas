@@ -7,6 +7,17 @@ service firebase.storage {
                    && request.resource.size < 5 * 1024 * 1024 // 5MB limit
                    && request.resource.contentType.matches('image/.*'); // Must be an image
     }
+    
+    match /families/{familyId}/{allPaths=**} {
+      // Allow public read so recipes can be shared/viewed and rendered smoothly
+      allow read: if true;
+      // Strictly isolate writes to members of this specific family
+      allow write: if request.auth != null 
+                   && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.familyId == familyId
+                   && request.resource.size < 10 * 1024 * 1024 // 10MB limit for high-res photos
+                   && request.resource.contentType.matches('image/.*');
+    }
+
     match /{allPaths=**} {
       allow read, write: if false;
     }
