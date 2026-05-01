@@ -187,7 +187,8 @@ export function RecipeDetails() {
 
     setUploadingImage(true);
     try {
-      const storageRef = ref(storage, `recipes/${id}/${Date.now()}_${file.name}`);
+      if (!familyId) throw new Error("Missing family context");
+      const storageRef = ref(storage, `families/${familyId}/recipes/${id}/${Date.now()}_${file.name}`);
       const snapshot = await uploadBytesResumable(storageRef, file);
       const downloadURL = await getDownloadURL(snapshot.ref);
       
@@ -305,25 +306,35 @@ export function RecipeDetails() {
                   <div>
                     <label className="block text-[12px] font-bold tracking-widest text-zinc-400 uppercase mb-2">Recipe Photo</label>
                     {!editImageUrl ? (
-                      <div className="relative w-full h-[160px] rounded-xl border-2 border-dashed border-zinc-200 bg-zinc-50/50 hover:bg-zinc-50 transition-colors flex flex-col items-center justify-center cursor-pointer overflow-hidden">
-                        <input 
-                          type="file" 
-                          accept="image/*"
-                          disabled={savingSection === 'hero' || uploadingImage}
-                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                          onChange={handleImageUpload}
+                      <div className="space-y-3">
+                        <div className="relative w-full h-[160px] rounded-xl border-2 border-dashed border-zinc-200 bg-zinc-50/50 hover:bg-zinc-50 transition-colors flex flex-col items-center justify-center cursor-pointer overflow-hidden">
+                          <input 
+                            type="file" 
+                            accept="image/*"
+                            disabled={savingSection === 'hero' || uploadingImage}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                            onChange={handleImageUpload}
+                          />
+                          {uploadingImage ? (
+                            <>
+                              <RefreshDouble className="w-8 h-8 text-primary-500 mb-2 animate-spin stroke-[1.5]" />
+                              <span className="text-[13px] font-bold text-zinc-500">Uploading...</span>
+                            </>
+                          ) : (
+                            <>
+                              <CloudUpload className="w-8 h-8 text-zinc-400 mb-2 stroke-[1.5]" />
+                              <span className="text-[13px] font-bold text-zinc-500">Tap to upload photo</span>
+                            </>
+                          )}
+                        </div>
+                        <Input 
+                          type="url" 
+                          placeholder="Or paste an image URL..." 
+                          value={editImageUrl} 
+                          onChange={(e) => setEditImageUrl(e.target.value)} 
+                          disabled={savingSection === 'hero' || uploadingImage} 
+                          className="!py-2 !text-[14px]"
                         />
-                        {uploadingImage ? (
-                          <>
-                            <RefreshDouble className="w-8 h-8 text-primary-500 mb-2 animate-spin stroke-[1.5]" />
-                            <span className="text-[13px] font-bold text-zinc-500">Uploading...</span>
-                          </>
-                        ) : (
-                          <>
-                            <CloudUpload className="w-8 h-8 text-zinc-400 mb-2 stroke-[1.5]" />
-                            <span className="text-[13px] font-bold text-zinc-500">Tap to upload photo</span>
-                          </>
-                        )}
                       </div>
                     ) : (
                       <div className="relative w-full h-[160px] rounded-xl overflow-hidden border border-zinc-200 bg-zinc-100 group">

@@ -213,21 +213,31 @@ export function ManualRecipeInput() {
                 <div>
                   <label className="block text-[13px] font-bold tracking-wide text-zinc-500 uppercase mb-2">Recipe Photo (Optional)</label>
                   {!imageFile && !imageUrl ? (
-                    <div className="relative w-full h-[120px] rounded-xl border-2 border-dashed border-zinc-200 bg-zinc-50/50 hover:bg-zinc-50 transition-colors flex flex-col items-center justify-center cursor-pointer overflow-hidden">
-                      <input 
-                        type="file" 
-                        accept="image/*"
-                        disabled={saving}
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                        onChange={(e) => {
-                          if (e.target.files && e.target.files[0]) {
-                            setImageFile(e.target.files[0]);
-                            setImageUrl(URL.createObjectURL(e.target.files[0]));
-                          }
-                        }}
+                    <div className="space-y-3">
+                      <div className="relative w-full h-[120px] rounded-xl border-2 border-dashed border-zinc-200 bg-zinc-50/50 hover:bg-zinc-50 transition-colors flex flex-col items-center justify-center cursor-pointer overflow-hidden">
+                        <input 
+                          type="file" 
+                          accept="image/*"
+                          disabled={saving}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                          onChange={(e) => {
+                            if (e.target.files && e.target.files[0]) {
+                              setImageFile(e.target.files[0]);
+                              setImageUrl(URL.createObjectURL(e.target.files[0]));
+                            }
+                          }}
+                        />
+                        <CloudUpload className="w-8 h-8 text-zinc-400 mb-2 stroke-[1.5]" />
+                        <span className="text-[13px] font-bold text-zinc-500">Tap to upload photo</span>
+                      </div>
+                      <Input 
+                        type="url" 
+                        placeholder="Or paste an image URL..." 
+                        value={imageUrl} 
+                        onChange={(e) => setImageUrl(e.target.value)} 
+                        disabled={saving} 
+                        className="!py-2 !text-[14px]"
                       />
-                      <CloudUpload className="w-8 h-8 text-zinc-400 mb-2 stroke-[1.5]" />
-                      <span className="text-[13px] font-bold text-zinc-500">Tap to upload photo</span>
                     </div>
                   ) : (
                     <div className="relative w-full h-[120px] rounded-xl overflow-hidden border border-zinc-200 bg-zinc-100 group">
