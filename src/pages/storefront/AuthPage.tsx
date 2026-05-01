@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { auth } from '../../config/firebase';
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { getUserRecord } from '../../services/firestore';
+import { StorefrontStepper } from '../../components/StorefrontStepper';
 
 export default function AuthPage() {
   const navigate = useNavigate();
@@ -66,6 +67,8 @@ export default function AuthPage() {
         overflow: 'hidden',
       }}
     >
+      <StorefrontStepper />
+      
       {/* Back link */}
       <button
         onClick={() => navigate('/')}

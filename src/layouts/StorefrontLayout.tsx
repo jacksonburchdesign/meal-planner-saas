@@ -12,6 +12,7 @@ import {
 } from 'iconoir-react';
 import { SHARED_ICON_OPTIONS as ICON_OPTIONS } from '../utils/icons';
 import { CookieBanner } from '../components/CookieBanner';
+import { StorefrontStepper } from '../components/StorefrontStepper';
 
 // ─── Types and Features config ──────────────────────────────────────────────────
 interface Feature {
@@ -599,6 +600,8 @@ export default function StorefrontLayout() {
             mealhouse.app
           </span>
         </Link>
+        
+        <StorefrontStepper />
 
         <motion.button
           id="sign-in-cta"

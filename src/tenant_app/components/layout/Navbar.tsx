@@ -30,7 +30,10 @@ export function Navbar() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 w-full bg-white border-t border-zinc-200 pb-[calc(env(safe-area-inset-bottom))] z-50 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+    <nav 
+      className="fixed bottom-0 left-0 w-full bg-white border-t border-zinc-200 z-50 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]"
+      style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 16px)' }}
+    >
       <div className="flex justify-around items-center h-[60px] max-w-md mx-auto px-2">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path || 

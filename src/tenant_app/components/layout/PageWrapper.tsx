@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Navbar } from './Navbar';
+import PullToRefresh from 'react-simple-pull-to-refresh';
 
 interface PageWrapperProps {
   children: ReactNode;
@@ -28,7 +29,13 @@ export function PageWrapper({ children, title, action, noPadding = false }: Page
 
       {/* Main Content */}
       <main className={`flex-1 w-full max-w-md mx-auto relative z-10 ${noPadding ? '' : 'px-4 py-6'}`}>
-        {children}
+        <PullToRefresh 
+          onRefresh={async () => { window.location.reload(); }}
+          pullingContent={<div className="text-center py-4 text-sm font-medium text-stone-500">Pull to refresh...</div>}
+          refreshingContent={<div className="text-center py-4 text-sm font-medium text-stone-500">Refreshing...</div>}
+        >
+          {children}
+        </PullToRefresh>
       </main>
 
       {/* Global Bottom Navigation */}
